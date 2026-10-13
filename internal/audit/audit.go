@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/trilitech/Sieve/internal/database"
+	"github.com/trilitech/Sieve/internal/events"
 )
 
 // Entry represents a single row in the audit_log table.
@@ -64,6 +65,22 @@ type ListFilter struct {
 // Logger provides methods for writing to and querying the audit log.
 type Logger struct {
 	db *database.DB
+
+	// Optional notification wiring (SetEvents). denyThrottle collapses a
+	// looping agent's repeated denies into one notification per window.
+	events       *events.Hub
+	denyThrottle *events.Throttle
+}
+
+// DenyNotifyWindow is how long repeats of the same (token, connection,
+// operation) deny are folded into one policy.denied notification.
+const DenyNotifyWindow = 60 * time.Second
+
+// SetEvents wires the notification hub: every agent-side "deny" row written
+// via Log also publishes a throttled policy.denied event. Nil disables it.
+func (l *Logger) SetEvents(h *events.Hub) {
+	l.events = h
+	l.denyThrottle = events.NewThrottle(DenyNotifyWindow)
 }
 
 // NewLogger creates a new Logger backed by the given database.
@@ -122,7 +139,39 @@ func (l *Logger) doInsert(e execer, req *LogRequest) error {
 // Log inserts a new entry into the audit log using a fresh implicit
 // transaction.
 func (l *Logger) Log(req *LogRequest) error {
-	return l.doInsert(l.db, req)
+	if err := l.doInsert(l.db, req); err != nil {
+		return err
+	}
+	l.publishDeny(req)
+	return nil
+}
+
+// publishDeny emits policy.denied for an agent deny row. Operator rows and
+// non-deny results never notify. The reason is the same text the audit page
+// shows (the policy's deny reason), truncated; params are never included.
+func (l *Logger) publishDeny(req *LogRequest) {
+	if l.events == nil || req.PolicyResult != "deny" {
+		return
+	}
+	if req.ActorKind != "" && req.ActorKind != "agent" {
+		return
+	}
+	ok, n := l.denyThrottle.Allow(req.TokenID + "\x00" + req.ConnectionID + "\x00" + req.Operation)
+	if !ok {
+		return
+	}
+	reason := req.ResponseSummary
+	if len(reason) > 200 {
+		reason = reason[:200] + "…"
+	}
+	l.events.Publish(events.Event{Type: events.TypePolicyDenied, Data: map[string]any{
+		"token_id":      req.TokenID,
+		"token_name":    req.TokenName,
+		"connection_id": req.ConnectionID,
+		"operation":     req.Operation,
+		"reason":        reason,
+		"count":         n,
+	}})
 }
 
 // LogTx inserts a new entry into the audit log using the supplied

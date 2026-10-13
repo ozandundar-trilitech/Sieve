@@ -402,6 +402,11 @@ func loadCryptoMeta(db *sql.DB) (salt []byte, params Argon2Params, kekCheck []by
 	return salt, params, kekCheck, nil
 }
 
+// IsInitialized reports whether the database already holds keyring metadata
+// (i.e. Setup has run). Used by `sieve --init-if-needed` to choose between
+// Setup and Load.
+func IsInitialized(db *sql.DB) (bool, error) { return cryptoMetaExists(db) }
+
 func cryptoMetaExists(db *sql.DB) (bool, error) {
 	var n int
 	if err := db.QueryRow(`SELECT COUNT(*) FROM crypto_meta WHERE id = 1`).Scan(&n); err != nil {

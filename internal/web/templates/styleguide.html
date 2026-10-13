@@ -1,0 +1,182 @@
+{{define "styleguide"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Style guide - Sieve</title>
+  {{template "head" .}}
+</head>
+<body class="bg-background text-foreground min-h-screen">
+  {{template "nav" .}}
+
+  <main class="app-main">
+    <div class="max-w-6xl">
+      <p class="eyebrow mb-2">Internal</p>
+      <h1 class="page-title">Style guide</h1>
+      <p class="page-description mt-2 mb-8 max-w-2xl">Every component in the admin component layer (<code class="code">internal/web/styles/theme.css</code>), rendered in the light theme (left) and the dark theme (right) side by side. Use the sidebar toggle to flip the page chrome. Not linked from the sidebar.</p>
+
+      <div class="grid gap-6 xl:grid-cols-2">
+        {{template "styleguide-section" "light"}}
+        {{template "styleguide-section" "dark"}}
+      </div>
+
+      <h2 class="section-title mt-10 mb-1">Error page</h2>
+      <p class="field-help mb-4">Shown instead of a plain-text error for top-level browser navigations (<code class="code">errorpage.go</code>); follows the page theme.</p>
+      {{template "error-card" .SampleError}}
+    </div>
+  </main>
+</body>
+</html>
+{{end}}
+
+{{define "styleguide-section"}}
+  {{$theme := .}}
+  <section class="{{$theme}} rounded-2xl border border-border bg-background p-6 text-foreground" aria-label="{{$theme}} theme">
+    <p class="eyebrow mb-5">{{$theme}} theme</p>
+
+    <h2 class="section-title mb-3">Typography</h2>
+    <p class="page-title mb-1">Page title (Geist 600)</p>
+    <p class="page-description mb-3">Page description in muted foreground.</p>
+    <p class="text-sm mb-1">Body text in Geist. <a href="#" class="link">An inline link</a>.</p>
+    <p class="text-sm text-secondary-foreground mb-1">Secondary text.</p>
+    <p class="text-sm text-muted-foreground mb-3">Muted text, helper copy.</p>
+    <p class="text-sm mb-6">IDs and code use JetBrains Mono: <code class="code">sieve_tok_9f2c…</code> <kbd class="kbd">⌘K</kbd></p>
+
+    <h2 class="section-title mb-3">Buttons</h2>
+    <div class="flex flex-wrap gap-2 mb-3">
+      <button type="button" class="btn btn-primary">Primary</button>
+      <button type="button" class="btn btn-secondary">Secondary</button>
+      <button type="button" class="btn btn-outline">Outline</button>
+      <button type="button" class="btn btn-ghost">Ghost</button>
+      <button type="button" class="btn btn-destructive">Destructive</button>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-6">
+      <button type="button" class="btn btn-success btn-sm">Approve</button>
+      <button type="button" class="btn btn-warning btn-sm">Warning</button>
+      <button type="button" class="btn btn-destructive-outline btn-sm">Revoke</button>
+      <button type="button" class="btn btn-primary btn-sm" disabled>Disabled</button>
+      <button type="button" class="btn btn-outline btn-mono btn-sm">trilitech/Sieve</button>
+      <button type="button" class="btn btn-link">Link button</button>
+    </div>
+
+    <h2 class="section-title mb-3">Form controls</h2>
+    <div class="grid gap-3 mb-6 sm:grid-cols-2">
+      <div>
+        <label class="label">Connection alias</label>
+        <input type="text" class="input w-full" placeholder="e.g. work-gmail">
+        <p class="field-help">Lowercase letters, digits and dashes.</p>
+      </div>
+      <div>
+        <label class="label">Service</label>
+        <select class="select w-full"><option>Gmail</option><option>Slack</option></select>
+      </div>
+      <div>
+        <label class="label-sm">Invalid input</label>
+        <input type="text" class="input w-full" aria-invalid="true" value="not valid">
+        <p class="field-error">Alias already in use.</p>
+      </div>
+      <div>
+        <label class="label-sm">Disabled</label>
+        <input type="text" class="input w-full" disabled value="read only">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="label">Script</label>
+        <textarea class="textarea w-full font-mono text-xs" rows="3">def evaluate(request):
+    return {"action": "allow"}</textarea>
+      </div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" class="checkbox" checked> Require approval</label>
+    </div>
+
+    <h2 class="section-title mb-3">Accordion</h2>
+    <div class="accordion-group mb-6">
+      <details class="accordion">
+        <summary class="accordion-trigger">
+          <div class="accordion-head">
+            <div class="min-w-0 flex-1">
+              <h4 class="accordion-title">Slack</h4>
+              <p class="accordion-description">Read channels, search messages, post replies.</p>
+            </div>
+            <div class="accordion-icon bg-muted"><svg class="w-5 h-5 text-foreground" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="5"/></svg></div>
+          </div>
+          <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="accordion-content"><p class="text-sm text-secondary-foreground">Collapsed row: logo tile, name, chevron. On the connections page the tile shows the brand logo picked by the row id (<code class="code">#slack</code>, <code class="code">#google</code>, …); rows without a logo keep this plug placeholder.</p></div>
+      </details>
+      <details class="accordion" open>
+        <summary class="accordion-trigger">
+          <div class="accordion-head">
+            <div class="min-w-0 flex-1">
+              <h4 class="accordion-title">Linear (open, no bespoke icon)</h4>
+              <p class="accordion-description">Expanded rows show the description under the name.</p>
+            </div>
+          </div>
+          <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+        <div class="accordion-content space-y-3">
+          <div><label class="label-sm">Connection alias</label><input type="text" class="input w-full" placeholder="e.g. work-linear"></div>
+          <button type="button" class="btn btn-primary w-full">Connect Linear</button>
+        </div>
+      </details>
+    </div>
+
+    <h2 class="section-title mb-3">Badges</h2>
+    <div class="flex flex-wrap gap-2 mb-6">
+      <span class="badge badge-allow">allow</span>
+      <span class="badge badge-deny">deny</span>
+      <span class="badge badge-approval">approval required</span>
+      <span class="badge badge-reauth">reauth required</span>
+      <span class="badge badge-disabled">disabled</span>
+      <span class="badge badge-primary">gmail</span>
+      <span class="badge badge-outline">outline</span>
+    </div>
+
+    <h2 class="section-title mb-3">Alerts</h2>
+    <div class="space-y-2 mb-6">
+      <div class="alert alert-info"><p class="alert-title">Heads up</p>Policies apply to new requests only.</div>
+      <div class="alert alert-success">Connection saved.</div>
+      <div class="alert alert-warning">This connection needs reauthorization.</div>
+      <div class="alert alert-destructive">Service locked: the keyring is not loaded.</div>
+    </div>
+
+    <h2 class="section-title mb-3">Card</h2>
+    <div class="card mb-6">
+      <div class="card-header">
+        <p class="card-title">work-gmail</p>
+        <p class="card-description">Google Workspace, added 2 days ago</p>
+      </div>
+      <div class="card-content text-sm text-secondary-foreground">Card body content sits on the card surface.</div>
+      <div class="card-footer">
+        <button type="button" class="btn btn-outline btn-sm">Edit</button>
+        <button type="button" class="btn btn-ghost btn-sm">Disable</button>
+      </div>
+    </div>
+
+    <h2 class="section-title mb-3">Table</h2>
+    <div class="card overflow-hidden mb-6">
+      <table class="table">
+        <thead><tr><th>Alias</th><th>Operation</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td class="font-mono">work-gmail</td><td class="font-mono text-xs">list_emails</td><td><span class="badge badge-allow">allow</span></td></tr>
+          <tr><td class="font-mono">ops-slack</td><td class="font-mono text-xs">post_message</td><td><span class="badge badge-approval">approval</span></td></tr>
+          <tr><td class="font-mono">aws-prod</td><td class="font-mono text-xs">delete_bucket</td><td><span class="badge badge-deny">deny</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="section-title mb-3">Tabs, navigation, code</h2>
+    <div class="tabs mb-4">
+      <span class="tab tab-active">Roles &amp; rules</span><span class="tab">Transforms</span><span class="tab">Explorer</span>
+    </div>
+    <div class="w-56 rounded-lg border border-border bg-sidebar p-2 mb-4 space-y-0.5">
+      <span class="nav-item nav-item-active">Active item</span>
+      <span class="nav-item">Nav item</span>
+      <span class="nav-subitem nav-subitem-active">Sub item (active)</span>
+      <span class="nav-subitem">Sub item</span>
+    </div>
+    <pre class="code-block mb-4">curl -H "Authorization: Bearer sieve_tok_…" \
+  http://localhost:19817/api/v1/connections</pre>
+    <p class="text-sm mb-2">Token value: <span class="token-value text-xs">sieve_tok_10bf0e984b32c059111267d5f9e67e31</span></p>
+    <div class="empty-state">No pending approvals.</div>
+  </section>
+{{end}}

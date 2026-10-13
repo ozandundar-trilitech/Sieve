@@ -5,68 +5,93 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tokens - Sieve</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  {{template "head" .}}
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-background text-foreground min-h-screen">
   {{template "nav" .}}
 
-  <main class="ml-64 p-8">
+  <main class="app-main">
     <div class="max-w-6xl">
-      <h1 class="text-2xl font-bold text-white mb-2">API Tokens</h1>
-      <p class="text-sm text-slate-400 mb-6">Tokens authenticate agents. Each token is assigned <strong>one or more roles</strong>; the agent can do the <strong>union</strong> of everything those roles allow. Build reusable roles (e.g. "email-access", "llm-access") and compose them per token — no need to cram unrelated permissions onto one role.</p>
+      <h1 class="page-title mb-2">API Tokens</h1>
+      <p class="text-sm text-muted-foreground mb-6">Tokens authenticate agents. Each token is assigned <strong>one or more roles</strong>; the agent can do the <strong>union</strong> of everything those roles allow. Build reusable roles (e.g. "email-access", "llm-access") and compose them per token — no need to cram unrelated permissions onto one role.</p>
 
       <!-- Plaintext Token Alert -->
       {{if .PlaintextToken}}
-      <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-6 mb-8">
+      <div class="bg-warning/10 border border-warning/30 rounded-xl p-6 mb-8">
         <div class="flex items-start gap-3">
-          <svg class="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6 text-warning shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
           </svg>
           <div class="flex-1">
-            <h3 class="text-amber-400 font-semibold mb-1">Token Created</h3>
-            <p class="text-amber-200/70 text-sm mb-3">Copy this token now. It will not be shown again.</p>
+            <h3 class="text-warning font-semibold mb-1">Token Created</h3>
+            <p class="text-warning/70 text-sm mb-3">Copy this token now. It will not be shown again.</p>
             <div class="flex items-center gap-2">
-              <code id="token-value" class="flex-1 bg-slate-900 text-amber-300 px-4 py-2.5 rounded-lg text-sm font-mono break-all select-all border border-slate-700">{{.PlaintextToken}}</code>
+              <code id="token-value" class="flex-1 bg-background text-warning px-4 py-2.5 rounded-lg text-sm font-mono break-all select-all border border-border">{{.PlaintextToken}}</code>
               <button onclick="navigator.clipboard.writeText(document.getElementById('token-value').textContent)"
-                      class="flex-shrink-0 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-amber-500">
+                      class="btn btn-outline btn-mono shrink-0">
                 Copy
               </button>
             </div>
+            <!-- Desktop app only: hand this token to Claude Desktop in one click.
+                 Hidden unless the page runs inside Sieve Desktop, whose preload
+                 exposes window.sieveDesktop.connectClaude. -->
+            <div id="connect-claude" class="hidden mt-4 flex items-center gap-3">
+              <button type="button" id="connect-claude-btn"
+                      class="btn btn-primary">
+                Connect to Claude Desktop
+              </button>
+              <span id="connect-claude-status" class="text-sm text-secondary-foreground" role="status" aria-live="polite"></span>
+            </div>
+            <script>
+              (function () {
+                var d = window.sieveDesktop;
+                if (!d || typeof d.connectClaude !== 'function') return;
+                var box = document.getElementById('connect-claude');
+                var btn = document.getElementById('connect-claude-btn');
+                var status = document.getElementById('connect-claude-status');
+                box.classList.remove('hidden');
+                btn.addEventListener('click', function () {
+                  btn.disabled = true;
+                  status.textContent = 'Connecting…';
+                  d.connectClaude(document.getElementById('token-value').textContent.trim())
+                    .then(function (r) { status.textContent = r.message; btn.disabled = !!r.ok; })
+                    .catch(function (e) { status.textContent = String(e && e.message || e); btn.disabled = false; });
+                });
+              })();
+            </script>
           </div>
         </div>
       </div>
       {{end}}
 
       <!-- Create Token -->
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 mb-8">
-        <h2 class="text-lg font-semibold text-white mb-4">Create Token</h2>
+      <div class="card p-6 mb-8">
+        <h2 class="text-lg font-semibold text-foreground mb-4">Create Token</h2>
         <form method="POST" action="/tokens/create">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
-              <label class="block text-sm font-medium text-slate-400 mb-1.5">Name</label>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Name</label>
               <input type="text" name="name" required placeholder="e.g. project-x-agent"
-                     class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                     class="input w-full px-3 py-2 text-sm">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-400 mb-1.5">Roles <span class="text-slate-500 font-normal">(select one or more)</span></label>
-              <div class="max-h-40 overflow-y-auto rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 space-y-1">
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Roles <span class="text-muted-foreground font-normal">(select one or more)</span></label>
+              <div class="max-h-40 overflow-y-auto rounded-lg bg-background border border-input px-3 py-2 space-y-1">
                 {{range .Roles}}
-                <label class="flex items-center gap-2 text-sm text-slate-200">
-                  <input type="checkbox" name="role_id" value="{{.ID}}" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                <label class="flex items-center gap-2 text-sm text-foreground">
+                  <input type="checkbox" name="role_id" value="{{.ID}}" class="rounded border-input bg-card text-foreground">
                   <span>{{.Name}}</span>
                 </label>
                 {{else}}
-                <p class="text-xs text-slate-500">No roles yet — create one under IAM → Roles.</p>
+                <p class="text-xs text-muted-foreground">No roles yet — create one under IAM → Roles.</p>
                 {{end}}
               </div>
-              <p class="text-xs text-slate-500 mt-1">The agent gets the union of every selected role.</p>
+              <p class="text-xs text-muted-foreground mt-1">The agent gets the union of every selected role.</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-400 mb-1.5">Expires</label>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Expires</label>
               <select name="expires_preset"
-                      class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      class="select w-full px-3 py-2 text-sm">
                 <option value="">Never</option>
                 <option value="24h">24 hours</option>
                 <option value="168h">7 days</option>
@@ -75,14 +100,14 @@
               </select>
               <div class="flex gap-2 mt-2">
                 <input type="text" name="expires_custom" placeholder="or e.g. 45d, 12h"
-                       class="w-1/2 rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-1/2 px-3 py-2 text-sm">
                 <input type="date" name="expires_date"
-                       class="w-1/2 rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-1/2 px-3 py-2 text-sm">
               </div>
-              <p class="text-xs text-slate-500 mt-1">A picked date wins, else the custom duration, else the preset.</p>
+              <p class="text-xs text-muted-foreground mt-1">A picked date wins, else the custom duration, else the preset.</p>
             </div>
           </div>
-          <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+          <button type="submit" class="btn btn-primary">
             Create Token
           </button>
         </form>
@@ -90,71 +115,71 @@
 
       <!-- Status Filter -->
       <div class="flex items-center gap-2 mb-4">
-        <span class="text-sm text-slate-400">Show:</span>
-        <a href="/tokens" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter ""}}bg-indigo-500/20 text-indigo-400{{else}}bg-slate-700 text-slate-300 hover:bg-slate-600{{end}}">All</a>
-        <a href="/tokens?filter=active" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "active"}}bg-emerald-500/20 text-emerald-400{{else}}bg-slate-700 text-slate-300 hover:bg-slate-600{{end}}">Active</a>
-        <a href="/tokens?filter=revoked" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "revoked"}}bg-red-500/20 text-red-400{{else}}bg-slate-700 text-slate-300 hover:bg-slate-600{{end}}">Revoked</a>
-        <a href="/tokens?filter=expired" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "expired"}}bg-amber-500/20 text-amber-400{{else}}bg-slate-700 text-slate-300 hover:bg-slate-600{{end}}">Expired</a>
+        <span class="text-sm text-muted-foreground">Show:</span>
+        <a href="/tokens" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter ""}}bg-foreground text-background{{else}}bg-muted text-secondary-foreground hover:bg-accent{{end}}">All</a>
+        <a href="/tokens?filter=active" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "active"}}bg-foreground text-background{{else}}bg-muted text-secondary-foreground hover:bg-accent{{end}}">Active</a>
+        <a href="/tokens?filter=revoked" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "revoked"}}bg-foreground text-background{{else}}bg-muted text-secondary-foreground hover:bg-accent{{end}}">Revoked</a>
+        <a href="/tokens?filter=expired" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{if eq .Filter "expired"}}bg-foreground text-background{{else}}bg-muted text-secondary-foreground hover:bg-accent{{end}}">Expired</a>
       </div>
 
       <!-- Tokens Table -->
-      <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+      <div class="card overflow-hidden">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-slate-700">
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Name</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Role</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Created</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Expires</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Status</th>
-              <th class="text-right text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Actions</th>
+            <tr class="border-b border-border">
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Name</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Role</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Created</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Expires</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Status</th>
+              <th class="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-700">
+          <tbody class="divide-y divide-border">
             {{range .Tokens}}
-            <tr class="hover:bg-slate-700/30 transition-colors">
-              <td class="px-6 py-4 text-sm font-medium text-white">{{.Name}}</td>
-              <td class="px-6 py-4 text-sm text-slate-300">
+            <tr class="hover:bg-accent transition-colors">
+              <td class="px-6 py-4 text-sm font-medium text-foreground">{{.Name}}</td>
+              <td class="px-6 py-4 text-sm text-secondary-foreground">
                 {{joinNames $.RoleNames .RoleIDs}}
                 {{$caps := index $.Caps .ID}}
                 {{if $caps}}
                 <details class="mt-1">
-                  <summary class="text-xs text-slate-500 cursor-pointer hover:text-slate-300">what it can do ({{len $caps}})</summary>
-                  <ul class="mt-1 space-y-0.5 text-xs text-slate-400 list-disc list-inside max-w-md">
+                  <summary class="text-xs text-muted-foreground cursor-pointer hover:text-foreground">what it can do ({{len $caps}})</summary>
+                  <ul class="mt-1 space-y-0.5 text-xs text-muted-foreground list-disc list-inside max-w-md">
                     {{range $caps}}<li>{{.}}</li>{{end}}
                   </ul>
                 </details>
                 {{end}}
               </td>
-              <td class="px-6 py-4 text-sm text-slate-400">{{timeAgo .CreatedAt}}</td>
-              <td class="px-6 py-4 text-sm text-slate-400">
-                {{if .ExpiresAt}}{{timeUntil (derefTime .ExpiresAt)}}{{else}}<span class="text-slate-600">Never</span>{{end}}
+              <td class="px-6 py-4 text-sm text-muted-foreground">{{timeAgo .CreatedAt}}</td>
+              <td class="px-6 py-4 text-sm text-muted-foreground">
+                {{if .ExpiresAt}}{{timeUntil (derefTime .ExpiresAt)}}{{else}}<span class="text-muted-foreground">Never</span>{{end}}
               </td>
               <td class="px-6 py-4">
                 {{if .Revoked}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-500/10 text-red-400 ring-1 ring-red-500/20">Revoked</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-destructive/10 text-destructive ring-1 ring-destructive/20">Revoked</span>
                 {{else if isExpired .ExpiresAt}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20">Expired</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-warning/10 text-warning ring-1 ring-warning/20">Expired</span>
                 {{else}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">Active</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-success/10 text-success ring-1 ring-success/20">Active</span>
                 {{end}}
               </td>
               <td class="px-6 py-4 text-right">
                 {{if not .Revoked}}
-                <a href="/tokens/{{.ID}}/edit" class="text-sm text-indigo-400 hover:text-indigo-300 font-medium mr-3">Edit roles</a>
+                <a href="/tokens/{{.ID}}/edit" class="text-sm text-link hover:text-foreground font-medium mr-3">Edit roles</a>
                 <form method="POST" action="/tokens/{{.ID}}/revoke"
                       data-token-name="{{.Name}}" onsubmit="return confirmRevoke(this)"
                       class="inline">
-                  <button type="submit" class="text-sm text-red-400 hover:text-red-300 font-medium">Revoke</button>
+                  <button type="submit" class="text-sm text-destructive hover:text-destructive/80 font-medium">Revoke</button>
                 </form>
                 {{else}}
-                <span class="text-sm text-slate-600">-</span>
+                <span class="text-sm text-muted-foreground">-</span>
                 {{end}}
               </td>
             </tr>
             {{else}}
             <tr>
-              <td colspan="6" class="px-6 py-12 text-center text-slate-500">No tokens match the current filter.</td>
+              <td colspan="6" class="px-6 py-12 text-center text-muted-foreground">No tokens match the current filter.</td>
             </tr>
             {{end}}
           </tbody>

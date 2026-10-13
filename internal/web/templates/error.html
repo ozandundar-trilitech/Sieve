@@ -1,0 +1,24 @@
+{{define "error"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}} - Sieve</title>
+  {{template "head" .}}
+</head>
+<body class="bg-background text-foreground min-h-screen">
+  <main class="auth-shell">
+    <a href="/" class="logo" aria-label="Sieve home">{{template "logo"}}<span class="logo-word">sieve</span></a>
+    {{template "error-card" .}}
+  </main>
+  <script>
+    // "Go back" is pointless on a page opened directly (nothing to go back to).
+    if (window.history.length <= 1) {
+      var b = document.getElementById("error-back");
+      if (b) b.hidden = true;
+    }
+  </script>
+</body>
+</html>
+{{end}}

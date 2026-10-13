@@ -16,9 +16,10 @@ import (
 	"sync"
 	"time"
 
-	sqlite3 "github.com/mattn/go-sqlite3"
 	"github.com/trilitech/Sieve/internal/database"
 	"github.com/trilitech/Sieve/internal/iam"
+	"modernc.org/sqlite"
+	sqlite3 "modernc.org/sqlite/lib"
 )
 
 // ErrDuplicateName is returned by CreatePolicy/UpdatePolicy when the policy name
@@ -28,8 +29,8 @@ var ErrDuplicateName = errors.New("a policy with that name already exists")
 
 // isUniqueViolation reports whether err is a SQLite UNIQUE-constraint failure.
 func isUniqueViolation(err error) bool {
-	var se sqlite3.Error
-	return errors.As(err, &se) && se.ExtendedCode == sqlite3.ErrConstraintUnique
+	var se *sqlite.Error
+	return errors.As(err, &se) && se.Code() == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 }
 
 // filtersAnnRE matches an @filters("a b c") annotation in a policy's Cedar.

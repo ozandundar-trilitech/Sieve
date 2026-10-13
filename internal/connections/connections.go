@@ -27,6 +27,7 @@ import (
 
 	"github.com/trilitech/Sieve/internal/connector"
 	"github.com/trilitech/Sieve/internal/database"
+	"github.com/trilitech/Sieve/internal/events"
 	"github.com/trilitech/Sieve/internal/secrets"
 	"golang.org/x/oauth2"
 )
@@ -75,6 +76,8 @@ type Service struct {
 	// Live connector instances keyed by connection ID
 	live map[string]connector.Connector
 	mu   sync.RWMutex
+	// events is the optional notification hub (SetEvents); nil = off.
+	events *events.Hub
 }
 
 // NewService creates a new connection service. The keyring must be loaded
@@ -270,6 +273,7 @@ func (s *Service) SetStatus(id, status string) error {
 	if err := validateStatus(status); err != nil {
 		return err
 	}
+	prev := s.currentStatus(id)
 	var (
 		res sql.Result
 		err error
@@ -286,7 +290,44 @@ func (s *Service) SetStatus(id, status string) error {
 	if n == 0 {
 		return fmt.Errorf("connection %q not found", id)
 	}
+	s.publishReauthTransition(id, prev, status, "")
 	return nil
+}
+
+// SetEvents wires the notification hub. A transition INTO reauth_required
+// publishes connection.reauth_required once; re-setting the same status (the
+// hourly sweep, a second failing refresh) does not re-notify. Nil disables it.
+func (s *Service) SetEvents(h *events.Hub) { s.events = h }
+
+// currentStatus returns the stored status, or "" if unknown. Used only to
+// detect transitions for notifications; a read error just means we may
+// notify once more than strictly necessary.
+func (s *Service) currentStatus(id string) string {
+	if s.events == nil {
+		return ""
+	}
+	var st string
+	_ = s.db.DB.QueryRow(`SELECT status FROM connections WHERE id = ?`, id).Scan(&st)
+	return st
+}
+
+func (s *Service) publishReauthTransition(id, prev, next, reason string) {
+	if s.events == nil || next != StatusReauthRequired || prev == StatusReauthRequired {
+		return
+	}
+	var name string
+	_ = s.db.DB.QueryRow(`SELECT display_name FROM connections WHERE id = ?`, id).Scan(&name)
+	if name == "" && prev == "" {
+		return // row is gone (deleted mid-refresh); nothing to tell the operator
+	}
+	if len(reason) > 200 {
+		reason = reason[:200] + "…"
+	}
+	s.events.Publish(events.Event{Type: events.TypeConnectionReauthRequired, Data: map[string]any{
+		"connection_id": id,
+		"display_name":  name,
+		"reason":        reason,
+	}})
 }
 
 // SetStatusWithReason updates both the status column and reauth_reason in
@@ -309,6 +350,7 @@ func (s *Service) SetStatusWithReason(id, status, reason string) error {
 		}
 		return nil
 	}
+	prev := s.currentStatus(id)
 	_, err := s.db.DB.Exec(
 		`UPDATE connections SET status = ?, reauth_reason = ? WHERE id = ?`,
 		status, reason, id,
@@ -316,6 +358,7 @@ func (s *Service) SetStatusWithReason(id, status, reason string) error {
 	if err != nil {
 		return fmt.Errorf("set status for %q: %w", id, err)
 	}
+	s.publishReauthTransition(id, prev, status, reason)
 	return nil
 }
 

@@ -441,10 +441,10 @@ func (s *Server) handleSetupPost(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// renderLoginPage / renderSetupPage are intentionally tiny inline
-// templates rather than full Tailwind-styled pages. The follow-up
-// UI commit promotes them to proper templates next to nav.html.
-// Embedding them inline here keeps the auth landing self-contained.
+// renderLoginPage / renderSetupPage are small inline pages rather than
+// html/template files; they use only component classes from
+// styles/theme.css (.auth-*, .input, .btn), which the stylesheet always
+// emits, so this file does not need to be scanned by the CSS build.
 // renderLoginPage writes the login form with a 200 status. For error
 // responses use renderLoginPageWithStatus so the Content-Type header
 // lands before WriteHeader (net/http drops headers set afterward).
@@ -457,41 +457,41 @@ func renderLoginPageWithStatus(w http.ResponseWriter, status int, errMsg string)
 	if status != http.StatusOK {
 		w.WriteHeader(status)
 	}
-	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>Sieve — sign in</title>
-<style>body{font-family:system-ui;background:#0f172a;color:#e2e8f0;padding:40px;max-width:480px;margin:0 auto}
-h1{font-weight:600;margin-bottom:24px}
-form{display:flex;flex-direction:column;gap:12px}
-input{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px;border-radius:6px;font-family:inherit;font-size:14px}
-button{background:#6366f1;color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-weight:500}
-button:hover{background:#4f46e5}
-.err{color:#f87171;font-size:14px}</style></head>
-<body><h1>Sign in to Sieve</h1>
-<form method="POST" action="/login" autocomplete="off">
-<input type="password" name="credential" placeholder="operator credential" autofocus required>
-<button type="submit">Sign in</button>
-%s</form></body></html>`, errBlock(errMsg))
+	fmt.Fprintf(w, `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sieve — sign in</title>
+%s</head>
+<body><main class="auth-shell">%s<div class="auth-card"><h1 class="auth-title">Sign in to Sieve</h1>
+<form method="POST" action="/login" autocomplete="off" class="auth-form">
+<input type="password" name="credential" placeholder="operator credential" aria-label="Operator credential" class="input" autofocus required>
+<button type="submit" class="btn btn-primary">Sign in</button>
+%s</form></div></main></body></html>`, authHead(), authLogo, errBlock(errMsg))
 }
 
 func renderSetupPage(w http.ResponseWriter, errMsg string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>Sieve — first-run setup</title>
-<style>body{font-family:system-ui;background:#0f172a;color:#e2e8f0;padding:40px;max-width:480px;margin:0 auto}
-h1{font-weight:600;margin-bottom:8px}
-p.lede{color:#94a3b8;margin-bottom:24px;font-size:14px}
-form{display:flex;flex-direction:column;gap:12px}
-input{background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:10px;border-radius:6px;font-family:inherit;font-size:14px}
-button{background:#6366f1;color:white;border:none;padding:10px;border-radius:6px;cursor:pointer;font-weight:500}
-button:hover{background:#4f46e5}
-.err{color:#f87171;font-size:14px}</style></head>
-<body><h1>Set up the operator credential</h1>
-<p class="lede">Sieve needs an admin credential before any management API is reachable. The display name appears in the audit log next to every change you make.</p>
-<form method="POST" action="/setup" autocomplete="off">
-<input type="text" name="display_name" placeholder="display name (e.g. alice-laptop)" required>
-<input type="password" name="credential" placeholder="credential" required>
-<input type="password" name="confirm_credential" placeholder="confirm credential" required>
-<button type="submit">Create credential and sign in</button>
-%s</form></body></html>`, errBlock(errMsg))
+	fmt.Fprintf(w, `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sieve — first-run setup</title>
+%s</head>
+<body><main class="auth-shell">%s<div class="auth-card"><h1 class="auth-title">Set up the operator credential</h1>
+<p class="auth-lede">Sieve needs an admin credential before any management API is reachable. The display name appears in the audit log next to every change you make.</p>
+<form method="POST" action="/setup" autocomplete="off" class="auth-form">
+<input type="text" name="display_name" placeholder="display name (e.g. alice-laptop)" aria-label="Display name" class="input" required>
+<input type="password" name="credential" placeholder="credential" aria-label="Credential" class="input" required>
+<input type="password" name="confirm_credential" placeholder="confirm credential" aria-label="Confirm credential" class="input" required>
+<button type="submit" class="btn btn-primary">Create credential and sign in</button>
+%s</form></div></main></body></html>`, authHead(), authLogo, errBlock(errMsg))
 }
+
+// authHead is the <head> payload shared by the login and setup pages:
+// the same stylesheet, favicon and no-flash theme bootstrap the
+// templated admin pages get from {{template "head"}}.
+func authHead() string {
+	return `<meta name="color-scheme" content="light dark">
+<script>` + themeInitJS + `</script>
+<link rel="icon" type="image/svg+xml" href="` + assetURL("favicon.svg") + `">
+<link rel="stylesheet" href="` + assetURL("admin.css") + `">`
+}
+
+// authLogo is the Sieve dot-grid mark + wordmark (same as the sidebar).
+const authLogo = `<div class="logo" aria-label="Sieve"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true" fill="currentColor"><circle cx="3" cy="3" r="1.3"/><circle cx="8.3" cy="3" r="1.3"/><circle cx="13.6" cy="3" r="1.3"/><circle cx="18.9" cy="3" r="1.3"/><circle cx="3" cy="8.3" r="1.3"/><circle cx="18.9" cy="8.3" r="1.3"/><circle cx="3" cy="13.6" r="1.3"/><circle cx="18.9" cy="13.6" r="1.3"/><circle cx="3" cy="18.9" r="1.3"/><circle cx="8.3" cy="18.9" r="1.3"/><circle cx="13.6" cy="18.9" r="1.3"/><circle cx="18.9" cy="18.9" r="1.3"/></svg><span class="logo-word">sieve</span></div>`
 
 func errBlock(msg string) string {
 	if msg == "" {

@@ -23,10 +23,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
 	"github.com/trilitech/Sieve/internal/database"
+	"github.com/trilitech/Sieve/internal/events"
 )
 
 // Status represents the resolution state of an approval queue item.
@@ -67,6 +69,23 @@ type Queue struct {
 	db        *database.DB
 	listeners map[string]chan *Item // keyed by approval item ID; buffered(1)
 	mu        sync.Mutex            // guards listeners map only, not DB operations
+	events    *events.Hub           // optional; nil = no notifications
+}
+
+// SetEvents wires the notification hub. Submit publishes approval.pending and
+// resolve publishes approval.resolved. Nil disables publishing.
+func (q *Queue) SetEvents(h *events.Hub) { q.events = h }
+
+// ParamKeys returns the sorted parameter NAMES of a request — never values.
+// Notifications use it to say "send_email (to, subject, body)" without
+// leaking message content onto a lock screen.
+func ParamKeys(params map[string]any) []string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // NewQueue creates a new Queue backed by the given database.
@@ -120,6 +139,14 @@ func (q *Queue) Submit(req *SubmitRequest) (*Item, error) {
 		CreatedAt:    now,
 	}
 
+	q.events.Publish(events.Event{Type: events.TypeApprovalPending, Data: map[string]any{
+		"id":            item.ID,
+		"token_id":      item.TokenID,
+		"connection_id": item.ConnectionID,
+		"operation":     item.Operation,
+		"param_keys":    ParamKeys(item.RequestData),
+		"created_at":    item.CreatedAt,
+	}})
 	return item, nil
 }
 
@@ -200,6 +227,10 @@ func (q *Queue) resolve(id string, status Status) error {
 	}
 
 	q.notify(id)
+	q.events.Publish(events.Event{Type: events.TypeApprovalResolved, Data: map[string]any{
+		"id":     id,
+		"status": string(status),
+	}})
 	return nil
 }
 

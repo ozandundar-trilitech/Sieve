@@ -1,0 +1,30 @@
+# Packaging for Sieve Desktop. Local/dev builds are ad-hoc signed ("-"),
+# which runs on the machine that built it. Release builds (Phase 4) replace
+# the identity with a Developer ID and add notarization.
+appId: tech.trili.sieve.desktop
+productName: Sieve
+copyright: Copyright © 2026 Trilitech
+directories:
+  output: release
+  buildResources: build
+files:
+  - package.json
+  - dist/**/*.js
+  - static/**
+  - assets/**
+extraResources:
+  # The Go server, built by `npm run build:sidecar` (CGO off, pure Go).
+  - from: resources/bin/
+    to: bin/
+    filter: ["sieve", "sieve.exe"]
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - target: dir
+    - target: dmg
+  identity: "-"
+  hardenedRuntime: false
+  extendInfo:
+    NSUserNotificationAlertStyle: alert
+dmg:
+  title: Sieve

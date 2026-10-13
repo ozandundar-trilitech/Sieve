@@ -3,10 +3,30 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"net/url"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
+	// Pure-Go SQLite (no CGO) so the server cross-compiles for every desktop
+	// target from one runner. Registers the "sqlite" driver name.
+	_ "modernc.org/sqlite"
 )
+
+// dsn builds the connection string. Pragmas are passed per-connection via
+// _pragma so EVERY pooled connection gets foreign keys, WAL, and a busy
+// timeout — a one-off Exec("PRAGMA …") only configures whichever pooled
+// connection happened to run it. _time_format=sqlite writes time.Time values
+// as "2006-01-02 15:04:05.999999999-07:00", the same layout the previous CGO
+// driver used, so existing rows and string comparisons are unaffected.
+func dsn(path string) string {
+	q := url.Values{}
+	q.Add("_pragma", "foreign_keys(1)")
+	q.Add("_pragma", "journal_mode(WAL)")
+	q.Add("_pragma", "busy_timeout(5000)")
+	q.Set("_time_format", "sqlite")
+	// Plain path, not a file: URI, so spaces (e.g. macOS "Application
+	// Support") need no percent-encoding. modernc splits the query off at "?".
+	return path + "?" + q.Encode()
+}
 
 // DB wraps a *sql.DB connection to the Sieve SQLite database.
 type DB struct {
@@ -16,7 +36,7 @@ type DB struct {
 // New opens (or creates) the SQLite database at path, enables WAL mode and
 // foreign keys, and creates the schema. The returned DB is ready for use.
 func New(path string) (*DB, error) {
-	sqlDB, err := sql.Open("sqlite3", path)
+	sqlDB, err := sql.Open("sqlite", dsn(path))
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}

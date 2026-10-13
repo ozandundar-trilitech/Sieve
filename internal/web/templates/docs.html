@@ -5,59 +5,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{if .Index.Current}}{{.Index.Current.Title}}{{else if .Index.CurrentCategory}}{{.Index.CurrentCategory.Title}}{{else}}Documentation{{end}} &middot; Sieve</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  {{template "head" .}}
   {{if .Index.Current}}
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"
-          integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi"
-          crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"
-          integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
-          crossorigin="anonymous"></script>
+  <script src="{{asset "vendor/marked-12.0.2.min.js"}}"
+          integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi"></script>
+  <script src="{{asset "vendor/purify-3.1.6.min.js"}}"
+          integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"></script>
   {{end}}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .prose pre { background: #1e293b; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
-    .prose code { color: #e2e8f0; font-size: 0.875rem; }
-    .prose p code, .prose li code, .prose td code { background: #334155; padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
-    .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-    .prose th, .prose td { border: 1px solid #334155; padding: 0.5rem; text-align: left; }
-    .prose th { background: #1e293b; }
-    .prose a { color: #818cf8; }
-    .prose a:hover { color: #a5b4fc; }
-    .prose h1 { font-size: 1.75rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; }
-    .prose h2 { font-size: 1.35rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; scroll-margin-top: 1rem; }
-    .prose h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; scroll-margin-top: 1rem; }
-    .prose p, .prose ul, .prose ol { margin-bottom: 1rem; line-height: 1.65; }
-    .prose ul { list-style: disc; padding-left: 1.5rem; }
-    .prose ol { list-style: decimal; padding-left: 1.5rem; }
-    .prose blockquote { border-left: 3px solid #475569; padding-left: 1rem; color: #94a3b8; margin: 1rem 0; }
-    .prose .heading-anchor { opacity: 0; margin-left: 0.5rem; color: #475569; text-decoration: none; font-weight: 400; transition: opacity .15s, color .15s; }
-    .prose h2:hover .heading-anchor, .prose h3:hover .heading-anchor { opacity: 1; }
-    .prose .heading-anchor:hover { color: #818cf8; }
-    .toc-link { display: block; padding: 0.25rem 0.5rem; border-left: 2px solid transparent; color: #94a3b8; font-size: 0.8125rem; line-height: 1.4; }
-    .toc-link:hover { color: #cbd5e1; }
-    .toc-link.toc-h3 { padding-left: 1.25rem; font-size: 0.75rem; }
-    .toc-link[data-active="true"] { color: #a5b4fc; border-left-color: #818cf8; background: rgba(99,102,241,.08); }
-    mark { background: rgba(250, 204, 21, .25); color: #fde68a; padding: 0 0.125rem; border-radius: 0.125rem; }
-  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-background text-foreground min-h-screen">
   {{template "nav" .}}
 
-  <main class="ml-64 p-6 lg:p-8">
+  <main class="app-main">
     <div class="mx-auto max-w-7xl">
 
       <!-- Breadcrumbs -->
       {{if .Index.Breadcrumbs}}
-      <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 text-sm text-slate-400 flex-wrap">
+      <nav aria-label="Breadcrumb" class="mb-4 flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
         {{range $i, $b := .Index.Breadcrumbs}}
-          {{if $i}}<span class="text-slate-600">&rsaquo;</span>{{end}}
+          {{if $i}}<span class="text-muted-foreground">&rsaquo;</span>{{end}}
           {{if $b.Href}}
-            <a href="{{$b.Href}}" class="hover:text-indigo-400">{{$b.Label}}</a>
+            <a href="{{$b.Href}}" class="hover:text-foreground">{{$b.Label}}</a>
           {{else}}
-            <span class="text-slate-200">{{$b.Label}}</span>
+            <span class="text-foreground">{{$b.Label}}</span>
           {{end}}
         {{end}}
       </nav>
@@ -66,9 +36,9 @@
       <!-- Search -->
       <div class="mb-6 relative">
         <input id="docs-search" type="search" autocomplete="off" placeholder="Search documentation"
-               class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500/60">
+               class="input w-full px-4 py-2.5 text-sm">
         <div id="docs-results" hidden
-             class="absolute z-30 left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-xl max-h-96 overflow-y-auto"></div>
+             class="card absolute z-30 left-0 right-0 mt-2 shadow-xl max-h-96 overflow-y-auto"></div>
       </div>
 
       <div class="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[14rem_minmax(0,1fr)_14rem] lg:gap-8">
@@ -76,15 +46,15 @@
         <!-- Category rail -->
         <aside class="hidden lg:block">
           <nav class="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pr-2">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 px-2">Documentation</p>
-            <a href="/docs" class="block px-2 py-1 text-sm rounded hover:bg-slate-800 hover:text-white {{if and (not .Index.Current) (not .Index.CurrentCategory)}}text-indigo-400 bg-indigo-500/10{{else}}text-slate-300{{end}}">All categories</a>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-2">Documentation</p>
+            <a href="/docs" class="block px-2 py-1 text-sm rounded hover:bg-accent hover:text-foreground {{if and (not .Index.Current) (not .Index.CurrentCategory)}}text-link bg-muted{{else}}text-secondary-foreground{{end}}">All categories</a>
             {{range .Index.Categories}}
               <div class="mt-4">
-                <a href="/docs/category/{{.Category.ID}}" class="block px-2 py-1 text-xs font-semibold uppercase tracking-wider rounded hover:text-white {{if and $.Index.CurrentCategory (eq $.Index.CurrentCategory.ID .Category.ID)}}text-indigo-400{{else}}text-slate-400{{end}}">{{.Category.Title}}</a>
+                <a href="/docs/category/{{.Category.ID}}" class="block px-2 py-1 text-xs font-semibold uppercase tracking-wider rounded hover:text-foreground {{if and $.Index.CurrentCategory (eq $.Index.CurrentCategory.ID .Category.ID)}}text-link{{else}}text-muted-foreground{{end}}">{{.Category.Title}}</a>
                 <ul class="mt-1 space-y-0.5">
                   {{range .Pages}}
                     <li>
-                      <a href="/docs/{{.Slug}}" class="block px-2 py-1 text-sm rounded transition-colors {{if and $.Index.Current (eq $.Index.Current.Slug .Slug)}}bg-indigo-500/20 text-indigo-400 font-medium{{else}}text-slate-300 hover:bg-slate-800 hover:text-white{{end}}">{{.Title}}</a>
+                      <a href="/docs/{{.Slug}}" class="block px-2 py-1 text-sm rounded transition-colors {{if and $.Index.Current (eq $.Index.Current.Slug .Slug)}}bg-muted text-link font-medium{{else}}text-secondary-foreground hover:bg-accent hover:text-foreground{{end}}">{{.Title}}</a>
                     </li>
                   {{end}}
                 </ul>
@@ -108,7 +78,7 @@
         {{if .Index.Current}}
         <aside id="toc-aside" class="hidden xl:block">
           <nav class="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto">
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2 px-2">On this page</p>
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2 px-2">On this page</p>
             <div id="toc-list"></div>
           </nav>
         </aside>
@@ -288,7 +258,7 @@
         hits.sort((a,b) => a.score - b.score);
 
         if (hits.length === 0) {
-          results.innerHTML = '<div class="px-4 py-3 text-sm text-slate-500">No documentation matches &ldquo;' + escapeHTML(rawQuery) + '&rdquo;.</div>';
+          results.innerHTML = '<div class="px-4 py-3 text-sm text-muted-foreground">No documentation matches &ldquo;' + escapeHTML(rawQuery) + '&rdquo;.</div>';
           results.hidden = false;
           return;
         }
@@ -306,12 +276,12 @@
           } else {
             excerpt = highlight(snippet(h.section.body, q), q);
           }
-          return '<a href="' + url + '" class="block px-4 py-3 border-b border-slate-700 last:border-0 hover:bg-slate-700/50">' +
+          return '<a href="' + url + '" class="block px-4 py-3 border-b border-border last:border-0 hover:bg-accent">' +
                  '<div class="flex items-baseline justify-between gap-3">' +
-                   '<span class="text-sm font-medium text-indigo-400">' + titleHTML + '</span>' +
-                   '<span class="text-[11px] uppercase tracking-wider text-slate-500">' + escapeHTML(h.page.category) + '</span>' +
+                   '<span class="text-sm font-medium text-foreground">' + titleHTML + '</span>' +
+                   '<span class="text-[11px] uppercase tracking-wider text-muted-foreground">' + escapeHTML(h.page.category) + '</span>' +
                  '</div>' +
-                 '<div class="text-xs text-slate-400 mt-1">' + excerpt + '</div>' +
+                 '<div class="text-xs text-muted-foreground mt-1">' + excerpt + '</div>' +
                  '</a>';
         }).join('');
         results.innerHTML = html; // xss-safe: every server-text interpolation in `html` is wrapped in highlight() (which escapes via escapeHTML) or escapeHTML() directly. `url` is built from h.page.slug and h.section.anchor only — both are passed through the Go-side slugify() (docs_toc.go) which keeps [a-z0-9-] only, so they carry no HTML metacharacters by construction.
@@ -339,21 +309,21 @@
 {{end}}
 
 {{define "doc-detail"}}
-  <a href="/docs" class="text-indigo-400 hover:text-indigo-300 text-sm">&larr; All documentation</a>
-  <article id="content" class="prose prose-invert mt-4 max-w-none"></article>
+  <a href="/docs" class="text-link hover:text-foreground text-sm">&larr; All documentation</a>
+  <article id="content" class="prose mt-4 max-w-none"></article>
 {{end}}
 
 {{define "doc-category"}}
-  <h1 class="text-2xl font-bold text-white mb-2">{{.CurrentCategory.Title}}</h1>
-  {{if .CurrentCategory.Description}}<p class="text-sm text-slate-400 mb-6">{{.CurrentCategory.Description}}</p>{{end}}
+  <h1 class="page-title mb-2">{{.CurrentCategory.Title}}</h1>
+  {{if .CurrentCategory.Description}}<p class="text-sm text-muted-foreground mb-6">{{.CurrentCategory.Description}}</p>{{end}}
   {{$id := .CurrentCategory.ID}}
   {{range .Categories}}{{if eq .Category.ID $id}}
     <ul class="space-y-2">
       {{range .Pages}}
         <li>
-          <a href="/docs/{{.Slug}}" class="block px-4 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
-            <span class="text-indigo-400 font-medium">{{.Title}}</span>
-            {{if .Description}}<span class="block text-xs text-slate-400 mt-1">{{.Description}}</span>{{end}}
+          <a href="/docs/{{.Slug}}" class="card card-interactive block px-4 py-3 hover:bg-accent/60">
+            <span class="text-foreground font-medium">{{.Title}}</span>
+            {{if .Description}}<span class="block text-xs text-muted-foreground mt-1">{{.Description}}</span>{{end}}
           </a>
         </li>
       {{end}}
@@ -362,23 +332,23 @@
 {{end}}
 
 {{define "doc-home"}}
-  <h1 class="text-2xl font-bold text-white mb-2">Documentation</h1>
-  <p class="text-sm text-slate-400 mb-8">Operating, configuring, and integrating Sieve.</p>
+  <h1 class="page-title mb-2">Documentation</h1>
+  <p class="text-sm text-muted-foreground mb-8">Operating, configuring, and integrating Sieve.</p>
   <div class="space-y-10">
     {{range .Categories}}
       <section>
         <div class="flex items-baseline justify-between mb-3">
-          <h2 class="text-lg font-semibold text-white">
-            <a href="/docs/category/{{.Category.ID}}" class="hover:text-indigo-400">{{.Category.Title}}</a>
+          <h2 class="text-lg font-semibold text-foreground">
+            <a href="/docs/category/{{.Category.ID}}" class="hover:text-foreground">{{.Category.Title}}</a>
           </h2>
         </div>
-        {{if .Category.Description}}<p class="text-sm text-slate-400 mb-3">{{.Category.Description}}</p>{{end}}
+        {{if .Category.Description}}<p class="text-sm text-muted-foreground mb-3">{{.Category.Description}}</p>{{end}}
         <ul class="grid gap-2 sm:grid-cols-2">
           {{range .Pages}}
             <li>
-              <a href="/docs/{{.Slug}}" class="block h-full px-4 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors">
-                <span class="text-indigo-400 font-medium">{{.Title}}</span>
-                {{if .Description}}<span class="block text-xs text-slate-400 mt-1">{{.Description}}</span>{{end}}
+              <a href="/docs/{{.Slug}}" class="card card-interactive block h-full px-4 py-3 hover:bg-accent/60">
+                <span class="text-foreground font-medium">{{.Title}}</span>
+                {{if .Description}}<span class="block text-xs text-muted-foreground mt-1">{{.Description}}</span>{{end}}
               </a>
             </li>
           {{end}}

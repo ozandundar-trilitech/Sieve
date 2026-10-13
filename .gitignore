@@ -22,3 +22,6 @@ specs/
 .claude/
 passphrase
 FEEDBACK_from_tezos_ops.md
+
+# Tailwind standalone CLI cache (internal/web/tools/genadmincss)
+.tools/

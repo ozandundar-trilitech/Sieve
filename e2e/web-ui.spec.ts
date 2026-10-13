@@ -1443,14 +1443,14 @@ test.describe('Documentation IA', () => {
     await expect(crumbs).toContainText('Documentation');
     await expect(crumbs).toContainText('Getting Started');
     // Trailing crumb (the title) is the one without a hyperlink.
-    const last = crumbs.locator('span.text-slate-200');
+    const last = crumbs.locator('span.text-foreground');
     await expect(last).toBeVisible();
   });
 
   test('rail highlights the active page on a doc detail view', async ({ page }) => {
     await page.goto(`${s.web_url}/docs/policy-rules-reference`);
     const active = page.locator('aside a[href="/docs/policy-rules-reference"]');
-    await expect(active.first()).toHaveClass(/text-indigo-400/);
+    await expect(active.first()).toHaveClass(/text-link/);
   });
 
   test('long doc shows a TOC with multiple entries; clicking jumps and highlights', async ({ page }) => {

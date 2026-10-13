@@ -21,26 +21,22 @@ func WriteSensitive(w http.ResponseWriter) {
 // writeSecurityHeaders sets the static security-headers that apply to
 // every admin response. Defense-in-depth against a future XSS regression
 // or a clickjack pivot: even if a script-injection sink slips back in,
-// the CSP refuses to execute cross-origin script (outside the documented
-// CDN allowlist); X-Frame-Options refuses to frame; nosniff refuses
-// MIME-confusion; no-referrer refuses to leak in-page URLs to third
-// parties.
+// the CSP refuses to execute cross-origin script; X-Frame-Options
+// refuses to frame; nosniff refuses MIME-confusion; no-referrer refuses
+// to leak in-page URLs to third parties.
 //
 // CSP uses 'unsafe-inline' for script-src because admin templates carry
-// per-page inline <script> blocks today. Moving those to nonces or
-// external files is a larger lift; the inline opener is documented here
-// so the next pass can tighten it.
+// per-page inline <script> blocks today (and the no-flash theme bootstrap
+// in <head>). Moving those to nonces or external files is a larger lift;
+// the inline opener is documented here so the next pass can tighten it.
+// style-src keeps 'unsafe-inline' for the style="" attributes templates
+// and inline scripts set.
 //
-// The CDN allowlist is the minimum the bundled templates require:
-//   - script-src cdn.tailwindcss.com — Tailwind CDN runtime
-//   - script-src cdn.jsdelivr.net    — marked + DOMPurify (docs)
-//   - script-src unpkg.com           — htmx (approvals)
-//   - style-src + font-src fonts.googleapis.com / fonts.gstatic.com
-//     — Inter font, loaded by every admin page header
-//
-// connect-src also names these hosts because tailwindcss.com's runtime
-// fetches its CSS via XHR; without that, the page loads but stays
-// unstyled.
+// Every other resource is same-origin: the compiled stylesheet, the
+// self-hosted fonts (Geist, JetBrains Mono), the
+// favicon, and the vendored htmx / marked / DOMPurify all ship inside
+// the binary under /static/ (see static.go). No third-party script,
+// style, font or connect host is allowed.
 //
 // form-action also names the OAuth-provider hosts the admin templates
 // redirect form submissions to. CSP's form-action directive covers both
@@ -56,18 +52,15 @@ func WriteSensitive(w http.ResponseWriter) {
 // is intentionally minimal — adding a connector that redirects a form POST to
 // a new host requires updating this directive.
 func writeSecurityHeaders(w http.ResponseWriter) {
-	const cdnScripts = "https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://unpkg.com"
-	const cdnStyles = "https://fonts.googleapis.com"
-	const cdnFonts = "https://fonts.gstatic.com"
 	const oauthHosts = "https://accounts.google.com https://slack.com https://github.com https://api.notion.com https://app.notion.com https://app.asana.com"
 	h := w.Header()
 	h.Set("Content-Security-Policy",
 		"default-src 'self'; "+
-			"script-src 'self' 'unsafe-inline' "+cdnScripts+"; "+
-			"style-src 'self' 'unsafe-inline' "+cdnStyles+"; "+
-			"font-src 'self' "+cdnFonts+"; "+
+			"script-src 'self' 'unsafe-inline'; "+
+			"style-src 'self' 'unsafe-inline'; "+
+			"font-src 'self'; "+
 			"img-src 'self' data:; "+
-			"connect-src 'self' "+cdnScripts+" "+cdnStyles+"; "+
+			"connect-src 'self'; "+
 			"object-src 'none'; "+
 			"frame-ancestors 'none'; "+
 			"base-uri 'none'; "+

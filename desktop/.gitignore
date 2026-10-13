@@ -1,0 +1,5 @@
+dist/
+resources/bin/
+test-results/
+playwright-report/
+release/

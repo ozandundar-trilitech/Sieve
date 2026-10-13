@@ -24,6 +24,7 @@ import (
 	gmailconn "github.com/trilitech/Sieve/internal/connectors/gmail"
 	httpproxyconn "github.com/trilitech/Sieve/internal/connectors/httpproxy"
 	slackconn "github.com/trilitech/Sieve/internal/connectors/slack"
+	"github.com/trilitech/Sieve/internal/events"
 	"github.com/trilitech/Sieve/internal/iam"
 	"github.com/trilitech/Sieve/internal/iampolicies"
 	"github.com/trilitech/Sieve/internal/operator"
@@ -151,6 +152,13 @@ print(json.dumps({"rewrite": json.dumps(walk(data))}))
 	auditLog := audit.NewLogger(db)
 	settingsSvc := settings.NewService(db)
 	scriptgenSvc := scriptgen.NewService(connSvc, settingsSvc)
+
+	// Notification hub, wired exactly as in cmd/sieve so the desktop shell can
+	// be developed against this server (GET /events on the web port).
+	eventHub := events.NewHub()
+	approvalQ.SetEvents(eventHub)
+	auditLog.SetEvents(eventHub)
+	connSvc.SetEvents(eventHub)
 
 	// --- Seed minimal test data ---
 
@@ -281,6 +289,7 @@ print(json.dumps({"rewrite": json.dumps(walk(data))}))
 	// IAM is the sole authorization engine.
 	must(settingsSvc.Set("iam_enabled", "true"))
 	webSrv.SetIAM(iamSvc, registry, settingsSvc)
+	webSrv.SetEvents(eventHub)
 
 	// --- Start API server ---
 	apiRouter := api.NewRouter(tokenSvc, connSvc, iamSvc, registry, rolesSvc, approvalQ, auditLog)

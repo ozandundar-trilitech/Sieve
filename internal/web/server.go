@@ -31,6 +31,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"net/http"
 	"net/netip"
 	"net/url"
@@ -43,11 +44,13 @@ import (
 	"sync"
 	"time"
 
+	sievedocs "github.com/trilitech/Sieve/docs"
 	"github.com/trilitech/Sieve/internal/approval"
 	"github.com/trilitech/Sieve/internal/audit"
 	"github.com/trilitech/Sieve/internal/connections"
 	"github.com/trilitech/Sieve/internal/connector"
 	"github.com/trilitech/Sieve/internal/database"
+	"github.com/trilitech/Sieve/internal/events"
 	"github.com/trilitech/Sieve/internal/httpguard"
 	"github.com/trilitech/Sieve/internal/iampolicies"
 	"github.com/trilitech/Sieve/internal/operator"
@@ -152,6 +155,11 @@ type Server struct {
 	iam         *iampolicies.Service
 	iamRegistry *connector.Registry
 	iamSettings *settings.Service
+
+	// events is the notification hub streamed at GET /events (SetEvents).
+	// nil ⇒ /events answers 503 and the desktop shell falls back to polling
+	// /approvals/pending.json.
+	events *events.Hub
 }
 
 // funcMap returns the template function map used across all templates.
@@ -160,6 +168,11 @@ func funcMap() template.FuncMap {
 		// linkify turns URLs and bare hostnames in operator-facing help text
 		// / descriptions into clickable links (all other text HTML-escaped).
 		"linkify": linkifyText,
+		// asset returns the cache-busted URL of an embedded static file,
+		// e.g. {{asset "admin.css"}} -> /static/admin.css?v=<content hash>.
+		"asset": assetURL,
+		// themeInit is the no-flash theme bootstrap for <head>.
+		"themeInit": themeInitScript,
 		// json marshals v to a JSON string with aggressive escaping
 		// suitable for embedding inside <script type="application/json">
 		// blocks. Returns a plain string (NOT template.JS) so Go's
@@ -342,10 +355,11 @@ func NewServer(
 	// given partial just ignore it. The ops picker partial is included so
 	// policies.html and policy_edit.html resolve to the same scope-aware
 	// markup — making create/edit divergence structurally impossible.
-	pages := []string{"connections", "connection_edit", "tokens", "tokens_edit", "approvals", "audit", "settings", "iam", "iam_edit", "iam_filter_edit", "docs"}
+	pages := []string{"connections", "connection_edit", "tokens", "tokens_edit", "approvals", "audit", "settings", "iam", "iam_edit", "iam_filter_edit", "docs", "styleguide", "error"}
 	for _, page := range pages {
 		t := template.Must(
 			template.New("").Funcs(funcMap()).ParseFS(templateFS,
+				"templates/layout.html",
 				"templates/nav.html",
 				"templates/connection_edit_field.html",
 				fmt.Sprintf("templates/%s.html", page),
@@ -494,6 +508,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /approvals", s.handleApprovals)
 	mux.HandleFunc("POST /approvals/{id}/approve", s.handleApprovalApprove)
 	mux.HandleFunc("POST /approvals/{id}/reject", s.handleApprovalReject)
+	mux.HandleFunc("GET /approvals/pending.json", s.handleApprovalsPendingJSON)
+
+	// Notification stream for the desktop shell (server-sent events). Gated
+	// by requireOperatorSession like every admin route — NOT exempt — so an
+	// agent token gets 403 and can't watch for its own approvals.
+	mux.HandleFunc("GET /events", s.handleEvents)
 
 	// Audit
 	mux.HandleFunc("GET /audit", s.handleAudit)
@@ -532,6 +552,18 @@ func (s *Server) Handler() http.Handler {
 	// Model discovery API
 	mux.HandleFunc("GET /api/models", s.handleListModels)
 
+	// Internal component style guide (session-gated like every other
+	// admin page; not linked from the sidebar).
+	mux.HandleFunc("GET /styleguide", func(w http.ResponseWriter, r *http.Request) {
+		s.render(w, r, "styleguide", map[string]any{
+			"Active":      "styleguide",
+			"SampleError": errorPageData{Status: http.StatusNotFound, Title: "Page not found", Message: "404 page not found"},
+		})
+	})
+
+	// Static assets (compiled CSS, fonts, favicon, vendored JS).
+	mux.Handle("GET /static/", staticHandler())
+
 	// Docs
 	mux.HandleFunc("GET /docs", s.handleDocsIndex)
 	mux.HandleFunc("GET /docs/", s.handleDocsIndex)
@@ -542,11 +574,13 @@ func (s *Server) Handler() http.Handler {
 	//   1. adminAuthWrapper — routes through requireOperatorSession
 	//      (session cookie + CSRF token gate) for every non-exempt path;
 	//      exempt paths are login/setup/OAuth-callback/docs.
-	//   2. noCacheAllAdmin — sensitive-response header writer that
+	//   2. styledErrors — renders plain-text error responses as the
+	//      styled HTML error page for browser navigations (errorpage.go).
+	//   3. noCacheAllAdmin — sensitive-response header writer that
 	//      stamps Cache-Control: no-store etc. on every admin response.
 	// Header wrapping is OUTERMOST so 401/403/redirect responses
 	// produced by the auth gate also carry the headers.
-	return noCacheAllAdmin(s.adminAuthWrapper(mux))
+	return noCacheAllAdmin(s.styledErrors(s.adminAuthWrapper(mux)))
 }
 
 // authExemptPaths is the set of admin paths that bypass the
@@ -564,10 +598,12 @@ var authExemptPaths = map[string]bool{
 }
 
 // authExemptPrefixes is the set of path prefixes that bypass auth
-// entirely — currently just the bundled documentation. Operators
-// reading docs without logging in is a feature.
+// entirely: the bundled documentation (operators reading docs without
+// logging in is a feature) and the static assets the login page itself
+// needs (stylesheet, fonts, favicon; nothing secret lives there).
 var authExemptPrefixes = []string{
 	"/docs",
+	"/static",
 }
 
 // authExemptCSRF is the set of paths that need a session but skip
@@ -2303,10 +2339,16 @@ func validateScriptFilename(name string) string {
 	return ""
 }
 
-// listDocSlugs returns the slugs of every.md file in docs/, in any order.
-// Used as the filesystem input to BuildIndex.
+// docsFS holds the documentation pages, embedded at build time (see the
+// docs package). Reading from an embedded FS also means a path can never
+// escape it: fs.ValidPath rejects "..", on top of validateDocSlug below.
+// A var so tests can substitute a fixture.
+var docsFS fs.FS = sievedocs.FS
+
+// listDocSlugs returns the slugs of every .md file in the docs, in any order.
+// Used as the input to BuildIndex.
 func listDocSlugs() ([]string, error) {
-	entries, err := os.ReadDir("docs")
+	entries, err := fs.ReadDir(docsFS, ".")
 	if err != nil {
 		return nil, err
 	}
@@ -2329,7 +2371,7 @@ func docTitleForSlug(slug string) string {
 	if msg := validateDocSlug(slug); msg != "" {
 		return slug
 	}
-	t := docTitle(fmt.Sprintf("docs/%s.md", slug))
+	t := docTitle(slug + ".md")
 	if t == "" {
 		return slug
 	}
@@ -2340,7 +2382,7 @@ func readDocBody(slug string) (string, error) {
 	if msg := validateDocSlug(slug); msg != "" {
 		return "", fmt.Errorf("invalid doc slug: %s", msg)
 	}
-	b, err := os.ReadFile(fmt.Sprintf("docs/%s.md", slug))
+	b, err := fs.ReadFile(docsFS, slug+".md")
 	if err != nil {
 		return "", err
 	}
@@ -2415,9 +2457,9 @@ func (s *Server) handleDocsIndex(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// docTitle returns the first markdown H1 from path, or "" if none is found.
-func docTitle(path string) string {
-	b, err := os.ReadFile(path)
+// docTitle returns the first markdown H1 of the named doc file, or "" if none.
+func docTitle(name string) string {
+	b, err := fs.ReadFile(docsFS, name)
 	if err != nil {
 		return ""
 	}

@@ -5,89 +5,86 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Connections - Sieve</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  {{template "head" .}}
+  <script src="{{asset "vendor/htmx-2.0.4.min.js"}}"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-background text-foreground min-h-screen">
   {{template "nav" .}}
 
-  <main class="ml-64 p-8">
+  <main class="app-main">
     <div class="max-w-5xl">
-      <h1 class="text-2xl font-bold text-white mb-6">Connections</h1>
+      <h1 class="page-title mb-6">Connections</h1>
 
       <!-- Active Connections -->
       {{if .Connections}}
-      <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-slate-700">
-          <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider">Active Connections</h2>
+      <div class="card overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-border">
+          <h2 class="text-sm font-semibold text-secondary-foreground uppercase tracking-wider">Active Connections</h2>
         </div>
         <table class="w-full">
           <thead>
-            <tr class="border-b border-slate-700">
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Alias</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Service</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Display Name</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Status</th>
-              <th class="text-left text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3">Added</th>
-              <th class="text-right text-xs font-medium text-slate-400 uppercase tracking-wider px-6 py-3"></th>
+            <tr class="border-b border-border">
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Alias</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Service</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Display Name</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Status</th>
+              <th class="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3">Added</th>
+              <th class="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-6 py-3"></th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-700">
+          <tbody class="divide-y divide-border">
             {{range .Connections}}
-            <tr class="{{if eq .Status "reauth_required"}}bg-amber-500/5 hover:bg-amber-500/10{{else}}hover:bg-slate-700/30{{end}} transition-colors">
-              <td class="px-6 py-4 text-sm font-mono text-white">
+            <tr class="{{if eq .Status "reauth_required"}}bg-warning/5 hover:bg-warning/15{{else}}hover:bg-accent{{end}} transition-colors">
+              <td class="px-6 py-4 text-sm font-mono text-foreground">
                 {{.ID}}
               </td>
               <td class="px-6 py-4">
                 {{$label := mapGet $.ConnLabels .ID}}
                 <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                  {{if eq .ConnectorType "google"}}bg-red-500/10 text-red-400 ring-1 ring-red-500/20
-                  {{else if eq $label "Anthropic"}}bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20
-                  {{else if eq $label "OpenAI"}}bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20
-                  {{else if eq $label "Gemini"}}bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20
-                  {{else if eq $label "AWS"}}bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20
-                  {{else if eq $label "Hyperstack"}}bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20
-                  {{else}}bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20
+                  {{if eq .ConnectorType "google"}}bg-destructive/10 text-destructive ring-1 ring-destructive/20
+                  {{else if eq $label "Anthropic"}}bg-warning/10 text-warning ring-1 ring-warning/20
+                  {{else if eq $label "OpenAI"}}bg-success/10 text-success ring-1 ring-success/20
+                  {{else if eq $label "Gemini"}}bg-muted text-foreground ring-1 ring-border-strong
+                  {{else if eq $label "AWS"}}bg-muted text-foreground ring-1 ring-border-strong
+                  {{else if eq $label "Hyperstack"}}bg-muted text-foreground ring-1 ring-border-strong
+                  {{else}}bg-muted text-muted-foreground ring-1 ring-border/20
                   {{end}}">
                   {{$label}}
                 </span>
               </td>
-              <td class="px-6 py-4 text-sm text-slate-300">{{.DisplayName}}</td>
+              <td class="px-6 py-4 text-sm text-secondary-foreground">{{.DisplayName}}</td>
               <td class="px-6 py-4">
                 {{if eq .Status "active"}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20">Active</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-success/10 text-success ring-1 ring-success/20">Active</span>
                 {{else if eq .Status "reauth_required"}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20" title="The upstream credential was revoked or rotated. Re-install OAuth or update the token to recover.">Reauth required</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-warning/10 text-warning ring-1 ring-warning/20" title="The upstream credential was revoked or rotated. Re-install OAuth or update the token to recover.">Reauth required</span>
                 {{else if eq .Status "disabled"}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-500/10 text-slate-300 ring-1 ring-slate-500/30" title="An admin disabled this connection. Agent operations will be denied until it is re-enabled.">Disabled</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-secondary-foreground ring-1 ring-border/30" title="An admin disabled this connection. Agent operations will be denied until it is re-enabled.">Disabled</span>
                 {{else}}
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-slate-500/10 text-slate-400 ring-1 ring-slate-500/20">{{.Status}}</span>
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground ring-1 ring-border/20">{{.Status}}</span>
                 {{end}}
               </td>
-              <td class="px-6 py-4 text-sm text-slate-400">{{timeAgo .CreatedAt}}</td>
+              <td class="px-6 py-4 text-sm text-muted-foreground">{{timeAgo .CreatedAt}}</td>
               <td class="px-6 py-4 text-right whitespace-nowrap">
                 {{if and (eq .Status "reauth_required") (eq .ConnectorType "google")}}
                 <form method="POST" action="/connections/{{.ID}}/reauth" class="inline mr-3">
                   <button type="submit"
-                          class="text-sm text-amber-300 hover:text-amber-200 font-medium transition-colors">
+                          class="text-sm text-warning hover:text-warning/80 font-medium transition-colors">
                     Re-authenticate
                   </button>
                 </form>
                 {{else if and (eq .Status "active") (eq .ConnectorType "google")}}
                 <details class="inline-block mr-3 text-left align-middle">
                   <summary title="Re-run Google OAuth for this connection to refresh scopes/tokens, or migrate it to a different OAuth client. Its ID and IAM grants are preserved."
-                           class="cursor-pointer text-sm text-slate-400 hover:text-indigo-300 font-medium transition-colors">Re-authenticate</summary>
-                  <form method="POST" action="/connections/{{.ID}}/reauth" class="mt-2 space-y-2 rounded-lg border border-slate-700 bg-slate-900/80 p-3 w-72">
-                    <p class="text-xs text-slate-500">Re-runs OAuth against this connection's current client. To <em>migrate</em> it to a different Google Workspace org's client, paste that client below (blank = keep the current one).</p>
+                           class="cursor-pointer text-sm text-muted-foreground hover:text-foreground font-medium transition-colors">Re-authenticate</summary>
+                  <form method="POST" action="/connections/{{.ID}}/reauth" class="mt-2 space-y-2 rounded-lg border border-border bg-background/80 p-3 w-72">
+                    <p class="text-xs text-muted-foreground">Re-runs OAuth against this connection's current client. To <em>migrate</em> it to a different Google Workspace org's client, paste that client below (blank = keep the current one).</p>
                     <input type="text" name="google_client_id" placeholder="new OAuth client_id (optional)"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="input w-full px-3 py-1.5 text-xs">
                     <input type="password" name="google_client_secret" placeholder="new OAuth client_secret (optional)"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="input w-full px-3 py-1.5 text-xs">
                     <button type="submit"
-                            class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-500 transition-colors">
+                            class="btn btn-primary w-full">
                       Re-authenticate
                     </button>
                   </form>
@@ -95,14 +92,14 @@
                 {{end}}
                 {{if or (eq .ConnectorType "http_proxy") (eq .ConnectorType "mcp_proxy") (eq .ConnectorType "github") (eq .ConnectorType "gitlab")}}
                 <a href="/connections/{{.ID}}/edit"
-                   class="inline-block mr-3 text-sm text-indigo-300 hover:text-indigo-200 font-medium transition-colors">
+                   class="inline-block mr-3 text-sm text-link hover:text-foreground font-medium transition-colors">
                   Edit
                 </a>
                 {{end}}
                 {{if eq .Status "disabled"}}
                 <form method="POST" action="/connections/{{.ID}}/enable" class="inline mr-3">
                   <button type="submit"
-                          class="text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+                          class="text-sm text-success hover:text-success/80 font-medium transition-colors">
                     Enable
                   </button>
                 </form>
@@ -111,7 +108,7 @@
                       data-confirm="Disable connection '{{.ID}}'? Agent operations will fail until you re-enable it."
                       class="inline mr-3">
                   <button type="submit"
-                          class="text-sm text-amber-400 hover:text-amber-300 font-medium transition-colors">
+                          class="text-sm text-warning hover:text-warning/80 font-medium transition-colors">
                     Disable
                   </button>
                 </form>
@@ -120,7 +117,7 @@
                       data-confirm="Delete connection '{{.ID}}'? This cannot be undone."
                       class="inline">
                   <button type="submit"
-                          class="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">
+                          class="text-sm text-destructive hover:text-destructive/80 font-medium transition-colors">
                     Delete
                   </button>
                 </form>
@@ -134,165 +131,144 @@
 
       <!-- Multi-account tip for Google connections -->
       {{if eq .ConnType "google"}}
-      <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 mb-6">
-        <p class="text-sm text-slate-300"><strong class="text-white">Multi-account access:</strong> Agents use the connection alias as the <code class="text-indigo-400">userId</code> in Gmail API paths. For example, <code class="text-indigo-400">/gmail/v1/users/work/messages</code> accesses the "work" connection, while <code class="text-indigo-400">/gmail/v1/users/me/messages</code> uses the default (first) connection.</p>
+      <div class="bg-card/50 border border-border rounded-lg p-4 mb-6">
+        <p class="text-sm text-secondary-foreground"><strong class="text-foreground">Multi-account access:</strong> Agents use the connection alias as the <code class="text-foreground">userId</code> in Gmail API paths. For example, <code class="text-foreground">/gmail/v1/users/work/messages</code> accesses the "work" connection, while <code class="text-foreground">/gmail/v1/users/me/messages</code> uses the default (first) connection.</p>
       </div>
       {{end}}
 
       <!-- Add Connection - Service Catalog -->
       <div class="mb-4">
-        <h2 class="text-lg font-semibold text-white mb-1">Add Connection</h2>
-        <p class="text-sm text-slate-400">Choose a service to connect. Sieve will hold the credentials and enforce your policies.</p>
+        <h2 class="text-lg font-semibold text-foreground mb-1">Add Connection</h2>
+        <p class="text-sm text-muted-foreground">Choose a service to connect. Sieve will hold the credentials and enforce your policies.</p>
       </div>
 
       {{range $category, $connectors := .Catalog}}
       <div class="mb-6">
-        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{{$category}}</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">{{$category}}</h3>
+        <div class="accordion-group">
           {{range $connectors}}
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-slate-500 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">{{.Name}}</h4>
-                <p class="text-sm text-slate-400 mt-0.5">{{linkify .Description}}</p>
+          <details id="{{.Type}}" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">{{.Name}}</h4>
+                <p class="accordion-description">{{linkify .Description}}</p>
               </div>
-              {{if eq .Type "google"}}
-              <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-red-400" viewBox="0 0 24 24" fill="currentColor"><path d="M20 18h-2V9.25L12 13 6 9.25V18H4V6h1.2l6.8 4.25L18.8 6H20m0-2H4c-1.11 0-2 .89-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2z"/></svg>
-              </div>
-              {{end}}
-              {{if eq .Type "http_proxy"}}
-              <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-              </div>
-              {{end}}
-              {{if eq .Type "github"}}
-              <div class="w-8 h-8 rounded-lg bg-slate-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-slate-200" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577v-2.17c-3.338.726-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.757-1.333-1.757-1.09-.745.082-.73.082-.73 1.204.085 1.838 1.236 1.838 1.236 1.07 1.834 2.807 1.304 3.492.997.108-.776.42-1.305.763-1.605-2.665-.303-5.467-1.332-5.467-5.93 0-1.31.468-2.381 1.235-3.22-.124-.303-.535-1.524.117-3.176 0 0 1.008-.323 3.3 1.23.957-.266 1.983-.4 3.003-.404 1.02.004 2.046.138 3.006.404 2.29-1.553 3.297-1.23 3.297-1.23.653 1.652.242 2.873.118 3.176.77.839 1.233 1.91 1.233 3.22 0 4.61-2.807 5.624-5.48 5.92.43.37.814 1.102.814 2.222v3.293c0 .32.217.694.825.577C20.565 21.795 24 17.298 24 12c0-6.63-5.37-12-12-12z"/></svg>
-              </div>
-              {{end}}
-              {{if eq .Type "gitlab"}}
-              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="currentColor"><path d="M23.6 9.593l-.033-.086L20.3.98a.851.851 0 0 0-1.6-.024L16.5 8.196H7.5L5.3.956A.85.85 0 0 0 3.7.98L.43 9.507.397 9.593a6.034 6.034 0 0 0 2.005 6.967l.013.01.034.024 4.953 3.71 2.45 1.853 1.493 1.13a1.002 1.002 0 0 0 1.213 0l1.493-1.13 2.45-1.852 4.99-3.733.01-.01a6.029 6.029 0 0 0 2.001-6.969z"/></svg>
-              </div>
-              {{end}}
-              {{if eq .Type "slack"}}
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
-              </div>
-              {{end}}
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             {{if eq .Type "http_proxy"}}
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. my-api"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Stripe API"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Target Base URL</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Target Base URL</label>
                 <input type="text" name="target_url" required placeholder="https://api.stripe.com"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Auth Header Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Auth Header Name</label>
                 <input type="text" name="auth_header" required placeholder="Authorization" value="Authorization"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Auth Value (your real API key)</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Auth Value (your real API key)</label>
                 <input type="password" name="auth_value" required placeholder="sk-..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <p class="text-xs text-slate-500 mt-1 italic">If header is <code>Authorization</code> and value has no scheme prefix, <code>Bearer&nbsp;</code> is added automatically.</p>
+                       class="input w-full px-3 py-1.5 text-sm">
+                <p class="text-xs text-muted-foreground mt-1 italic">If header is <code>Authorization</code> and value has no scheme prefix, <code>Bearer&nbsp;</code> is added automatically.</p>
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect {{.Name}}
               </button>
             </form>
             {{else if eq .Type "github"}}
-            <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-3 mb-3 text-xs text-slate-400 space-y-3">
-              <p class="text-slate-300"><strong class="text-white">Two ways to connect.</strong> Pick what matches your access pattern.</p>
+            <div class="rounded-lg border border-border bg-background/60 p-3 mb-3 text-xs text-muted-foreground space-y-3">
+              <p class="text-secondary-foreground"><strong class="text-foreground">Two ways to connect.</strong> Pick what matches your access pattern.</p>
               <div>
                 <div class="flex items-baseline gap-1.5 mb-1">
-                  <span class="text-slate-200 font-medium">Fine-grained PAT</span>
-                  <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/25">Recommended</span>
+                  <span class="text-foreground font-medium">Fine-grained PAT</span>
+                  <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider bg-success/15 text-success ring-1 ring-success/25">Recommended</span>
                 </div>
                 <p class="leading-snug">Paste a token; done. Scoped to specific repos under one owner. Acts as <em>you</em> (or a service-account user). Tokens expire and need re-pasting.</p>
               </div>
               <div>
                 <div class="flex items-baseline gap-1.5 mb-1">
-                  <span class="text-slate-200 font-medium">GitHub App install</span>
+                  <span class="text-foreground font-medium">GitHub App install</span>
                 </div>
                 <p class="leading-snug">Org-wide install with finer-grained per-repo scopes. Ephemeral 1-hour tokens — Sieve refreshes automatically. Acts as the App (better audit). Requires your Sieve host to be reachable from GitHub for the callback.</p>
               </div>
-              <p class="pt-2 border-t border-slate-700/60 text-slate-500">Use a PAT for a single repo or personal/dev access; install the App when multiple repos in an org need long-lived, auto-rotating access.</p>
+              <p class="pt-2 border-t border-border/60 text-muted-foreground">Use a PAT for a single repo or personal/dev access; install the App when multiple repos in an org need long-lived, auto-rotating access.</p>
             </div>
             <form method="POST" action="/connections/github/pat" class="space-y-3">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. my-github"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Personal GitHub"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div class="grid grid-cols-3 gap-2">
                 <div class="col-span-1">
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Scope</label>
-                  <select name="scope_type" class="w-full rounded-lg bg-slate-900 border border-slate-600 px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-slate-400">
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Scope</label>
+                  <select name="scope_type" class="select w-full px-2 py-1.5 text-sm">
                     <option value="user">User</option>
                     <option value="org">Org</option>
                   </select>
                 </div>
                 <div class="col-span-2">
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Owner login</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Owner login</label>
                   <input type="text" name="scope_name" required placeholder="e.g. trilitech"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Fine-grained PAT</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Fine-grained PAT</label>
                 <input type="password" name="token" required placeholder="github_pat_..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
-                <p class="text-xs text-slate-500 mt-1">Sieve validates the token before saving.</p>
+                       class="input w-full px-3 py-1.5 text-sm">
+                <p class="text-xs text-muted-foreground mt-1">Sieve validates the token before saving.</p>
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-slate-200 px-3 py-1.5 text-sm font-medium text-slate-900 hover:bg-white transition-colors">
+                      class="btn btn-primary w-full">
                 Add via PAT
               </button>
             </form>
-            <div class="mt-3 pt-3 border-t border-slate-700">
+            <div class="mt-3 pt-3 border-t border-border">
               <form method="POST" action="/connections/github/app/start" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Or install as GitHub App</label>
-                  <p class="text-xs text-slate-500 mb-2">Opens GitHub to create &amp; install a Sieve-specific App in your account. Works with ephemeral 1-hour tokens, no PAT management. Requires your Sieve host to be reachable from GitHub for the callback.</p>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Or install as GitHub App</label>
+                  <p class="text-xs text-muted-foreground mb-2">Opens GitHub to create &amp; install a Sieve-specific App in your account. Works with ephemeral 1-hour tokens, no PAT management. Requires your Sieve host to be reachable from GitHub for the callback.</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. my-github-app"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Trilitech GitHub"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Create App under org (optional)</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Create App under org (optional)</label>
                   <input type="text" name="org_slug" placeholder="leave empty for personal account"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-600 transition-colors">
+                        class="btn btn-secondary w-full">
                   Install as GitHub App
                 </button>
               </form>
@@ -301,29 +277,29 @@
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="gitlab">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. my-gitlab"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Trilitech GitLab"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Personal Access Token</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Personal Access Token</label>
                 <input type="password" name="token" required placeholder="glpat-..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400">
-                <p class="text-xs text-slate-500 mt-1">Needs the <code>api</code> scope for write ops, or <code>read_api</code> for read-only.</p>
+                       class="input w-full px-3 py-1.5 text-sm">
+                <p class="text-xs text-muted-foreground mt-1">Needs the <code>api</code> scope for write ops, or <code>read_api</code> for read-only.</p>
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Base URL <span class="text-slate-600">(optional)</span></label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Base URL <span class="text-muted-foreground">(optional)</span></label>
                 <input type="text" name="base_url" placeholder="https://gitlab.com"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-400">
-                <p class="text-xs text-slate-500 mt-1">Override for self-hosted GitLab instances. Leave blank for gitlab.com.</p>
+                       class="input w-full px-3 py-1.5 text-sm">
+                <p class="text-xs text-muted-foreground mt-1">Override for self-hosted GitLab instances. Leave blank for gitlab.com.</p>
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-orange-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-400 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect GitLab
               </button>
             </form>
@@ -345,153 +321,153 @@
                  then bot install, then a visible Manage-credentials box, then
                  the always-present bot-token paste form (after {{end}}). */}}
             <div class="space-y-3">
-              <p class="text-sm font-semibold text-violet-300">Install as you — user token</p>
-              <p class="text-xs text-slate-500">Connects as <strong>you</strong> (<code>xoxp-</code>) with your full permissions — every channel/DM you can see, plus search. Add the matching <em>user</em> scopes (incl. <code>search:read</code>) under your Slack app's <em>OAuth&nbsp;&amp;&nbsp;Permissions → User Token Scopes</em>.</p>
+              <p class="text-sm font-semibold text-foreground">Install as you — user token</p>
+              <p class="text-xs text-muted-foreground">Connects as <strong>you</strong> (<code>xoxp-</code>) with your full permissions — every channel/DM you can see, plus search. Add the matching <em>user</em> scopes (incl. <code>search:read</code>) under your Slack app's <em>OAuth&nbsp;&amp;&nbsp;Permissions → User Token Scopes</em>.</p>
               <form method="POST" action="/connections/slack/oauth/user/start" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. acme-slack-me"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Acme Workspace (as me)"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Install via OAuth (as user)
                 </button>
               </form>
             </div>
-            <div class="mt-4 pt-4 border-t border-slate-700 space-y-3">
-              <p class="text-sm font-semibold text-emerald-300">Install as bot</p>
-              <p class="text-xs text-slate-500">Connects as the app's bot user (<code>xoxb-</code>) — sees only channels it's invited to; no search.</p>
+            <div class="mt-4 pt-4 border-t border-border space-y-3">
+              <p class="text-sm font-semibold text-success">Install as bot</p>
+              <p class="text-xs text-muted-foreground">Connects as the app's bot user (<code>xoxb-</code>) — sees only channels it's invited to; no search.</p>
               <form method="POST" action="/connections/slack/oauth/start" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. acme-slack"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Acme Workspace"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Install via OAuth (bot)
                 </button>
               </form>
             </div>
-            <div class="mt-4 pt-4 border-t border-slate-700">
-              <div class="rounded-lg bg-slate-900/40 border border-slate-600 p-3 space-y-3">
-                <p class="text-sm font-semibold text-slate-200">Manage OAuth credentials</p>
-                <p class="text-xs text-slate-500">Re-save to change your app credentials. <strong>To switch to the PKCE public flow</strong> (required for a <code>localhost</code> redirect), re-enter your Client ID and leave the secret blank — that drops the stored secret.</p>
+            <div class="mt-4 pt-4 border-t border-border">
+              <div class="rounded-lg bg-background/40 border border-input p-3 space-y-3">
+                <p class="text-sm font-semibold text-foreground">Manage OAuth credentials</p>
+                <p class="text-xs text-muted-foreground">Re-save to change your app credentials. <strong>To switch to the PKCE public flow</strong> (required for a <code>localhost</code> redirect), re-enter your Client ID and leave the secret blank — that drops the stored secret.</p>
                 <form method="POST" action="/connections/slack/oauth/configure" class="space-y-3">
                   <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Slack Client ID</label>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Slack Client ID</label>
                     <input type="text" name="client_id" required placeholder="1234567890.1234567890"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                           class="input w-full px-3 py-1.5 text-sm">
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Slack Client Secret <span class="text-slate-500">(optional — leave blank for localhost/PKCE)</span></label>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">Slack Client Secret <span class="text-muted-foreground">(optional — leave blank for localhost/PKCE)</span></label>
                     <input type="password" name="client_secret" placeholder="leave blank to use PKCE (localhost)"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                           class="input w-full px-3 py-1.5 text-sm">
                   </div>
                   <button type="submit"
-                          class="w-full rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-600 transition-colors">
+                          class="btn btn-secondary w-full">
                     Save Slack OAuth credentials
                   </button>
                 </form>
                 <form method="POST" action="/connections/slack/oauth/clear" class="inline">
-                  <button type="submit" class="text-xs text-rose-400 hover:text-rose-300 underline">
+                  <button type="submit" class="text-xs text-destructive hover:text-destructive/80 underline">
                     Remove Slack OAuth credentials entirely
                   </button>
                 </form>
               </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-slate-700">
+            <div class="mt-4 pt-4 border-t border-border">
             {{else}}
-            <div class="rounded-lg bg-slate-900/40 border border-emerald-500/30 p-3 mb-3 space-y-2">
-              <p class="text-xs font-semibold text-emerald-300">One-time setup: Slack OAuth app</p>
-              <p class="text-xs text-slate-400">To use the "Install via OAuth" button, paste your Slack app's <strong>Client ID</strong> below (the <strong>Client Secret</strong> is optional). Sieve stores them and never asks again.</p>
-              <ol class="text-xs text-slate-400 list-decimal list-inside space-y-1">
-                <li>Create a Slack app at <a href="https://api.slack.com/apps" target="_blank" class="text-emerald-400 hover:text-emerald-300 underline">api.slack.com/apps</a> → <em>From scratch</em>.</li>
-                <li>Under <em>OAuth &amp; Permissions</em>, add bot scopes: <code class="text-emerald-400">channels:read groups:read users:read users.profile:read channels:history groups:history chat:write</code>.</li>
-                <li>Add this Redirect URL: <code class="text-emerald-400 break-all">https://localhost:19816/oauth/callback</code> (replace <code>localhost</code> with your Sieve host).</li>
+            <div class="rounded-lg bg-background/40 border border-success/30 p-3 mb-3 space-y-2">
+              <p class="text-xs font-semibold text-success">One-time setup: Slack OAuth app</p>
+              <p class="text-xs text-muted-foreground">To use the "Install via OAuth" button, paste your Slack app's <strong>Client ID</strong> below (the <strong>Client Secret</strong> is optional). Sieve stores them and never asks again.</p>
+              <ol class="text-xs text-muted-foreground list-decimal list-inside space-y-1">
+                <li>Create a Slack app at <a href="https://api.slack.com/apps" target="_blank" class="text-success hover:text-success/80 underline">api.slack.com/apps</a> → <em>From scratch</em>.</li>
+                <li>Under <em>OAuth &amp; Permissions</em>, add bot scopes: <code class="text-success">channels:read groups:read users:read users.profile:read channels:history groups:history chat:write</code>.</li>
+                <li>Add this Redirect URL: <code class="text-success break-all">https://localhost:19816/oauth/callback</code> (replace <code>localhost</code> with your Sieve host).</li>
                 <li><strong>Enable PKCE</strong> under <em>OAuth &amp; Permissions</em> and leave the Client Secret blank below — a <code>localhost</code> redirect is a "non-web URI" that Slack only allows via PKCE. (A Client Secret is only for a public-domain deployment.)</li>
                 <li>Copy the <em>Client ID</em> from <em>Basic Information</em> and paste below.</li>
               </ol>
             </div>
-            <form method="POST" action="/connections/slack/oauth/configure" class="space-y-3 mb-3 pb-3 border-b border-slate-700">
+            <form method="POST" action="/connections/slack/oauth/configure" class="space-y-3 mb-3 pb-3 border-b border-border">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Slack Client ID</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Slack Client ID</label>
                 <input type="text" name="client_id" required placeholder="1234567890.1234567890"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Slack Client Secret <span class="text-slate-500">(optional — leave blank for localhost/PKCE)</span></label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Slack Client Secret <span class="text-muted-foreground">(optional — leave blank for localhost/PKCE)</span></label>
                 <input type="password" name="client_secret" placeholder="leave blank to use PKCE (localhost)"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Save Slack OAuth credentials
               </button>
-              <p class="text-xs text-slate-500">After saving, the page reloads and the <em>Install via OAuth</em> button appears.</p>
+              <p class="text-xs text-muted-foreground">After saving, the page reloads and the <em>Install via OAuth</em> button appears.</p>
             </form>
             <div>
             {{end}}
               <form method="POST" action="/connections/slack/token" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">{{if $.SlackOAuthConfigured}}Or use existing bot token{{else}}Paste bot token{{end}}</label>
-                  <p class="text-xs text-slate-500 mb-2">Find <code>xoxb-…</code> on your Slack app's <strong>OAuth &amp; Permissions</strong> page after install.</p>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">{{if $.SlackOAuthConfigured}}Or use existing bot token{{else}}Paste bot token{{end}}</label>
+                  <p class="text-xs text-muted-foreground mb-2">Find <code>xoxb-…</code> on your Slack app's <strong>OAuth &amp; Permissions</strong> page after install.</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. acme-slack"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Acme Workspace"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Bot token</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Bot token</label>
                   <input type="password" name="bot_token" required placeholder="xoxb-…"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  <p class="text-xs text-slate-500 mt-1">Sieve calls Slack auth.test before saving. The token is encrypted at rest.</p>
+                         class="input w-full px-3 py-1.5 text-sm">
+                  <p class="text-xs text-muted-foreground mt-1">Sieve calls Slack auth.test before saving. The token is encrypted at rest.</p>
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-600 transition-colors">
+                        class="btn btn-secondary w-full">
                   Add via bot token
                 </button>
               </form>
-              <form method="POST" action="/connections/slack/user-token" class="space-y-3 mt-3 pt-3 border-t border-slate-700">
+              <form method="POST" action="/connections/slack/user-token" class="space-y-3 mt-3 pt-3 border-t border-border">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Or paste a user token</label>
-                  <p class="text-xs text-slate-500 mb-2">Find <code>xoxp-…</code> under <strong>User OAuth Token</strong> on your Slack app's <strong>OAuth &amp; Permissions</strong> page. Acts as you with your full permissions.</p>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Or paste a user token</label>
+                  <p class="text-xs text-muted-foreground mb-2">Find <code>xoxp-…</code> under <strong>User OAuth Token</strong> on your Slack app's <strong>OAuth &amp; Permissions</strong> page. Acts as you with your full permissions.</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. acme-slack-me"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Acme Workspace (as me)"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">User token</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">User token</label>
                   <input type="password" name="user_token" required placeholder="xoxp-…"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
-                  <p class="text-xs text-slate-500 mt-1">Sieve calls Slack auth.test before saving. The token is encrypted at rest.</p>
+                         class="input w-full px-3 py-1.5 text-sm">
+                  <p class="text-xs text-muted-foreground mt-1">Sieve calls Slack auth.test before saving. The token is encrypted at rest.</p>
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Add via user token
                 </button>
               </form>
@@ -504,68 +480,68 @@
             {{if $.NotionOAuthConfigured}}
             <form method="POST" action="/connections/notion/oauth/start" class="space-y-3">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. team-notion"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Team Notion"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Install via OAuth
               </button>
-              <p class="text-xs text-slate-500">Opens Notion's page picker — you choose exactly which pages and databases Sieve can access.</p>
+              <p class="text-xs text-muted-foreground">Opens Notion's page picker — you choose exactly which pages and databases Sieve can access.</p>
             </form>
             <div class="mt-2">
               <form method="POST" action="/connections/notion/oauth/clear" class="inline">
-                <button type="submit" class="text-xs text-slate-500 hover:text-slate-300 underline">
+                <button type="submit" class="text-xs text-muted-foreground hover:text-foreground underline">
                   Reset Notion OAuth credentials
                 </button>
               </form>
             </div>
             {{else}}
-            <div class="rounded-lg bg-slate-900/40 border border-indigo-500/30 p-3 mb-3 space-y-2">
-              <p class="text-xs font-semibold text-indigo-300">One-time setup: Notion OAuth app</p>
-              <p class="text-xs text-slate-400">Create a <strong>public</strong> integration at <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 underline">notion.so/my-integrations</a>, then paste its <strong>Client ID</strong> and <strong>Secret</strong> below.</p>
-              <p class="text-xs text-slate-400 mb-1">Register this exact <strong>Redirect URI</strong> on the integration (OAuth Domain &amp; URIs):</p>
-              <code class="block text-xs bg-slate-950/60 rounded px-2 py-1 text-indigo-300 break-all select-all">{{$.OAuthCallbackURL}}</code>
-              <p class="text-[11px] text-slate-500">Notion only accepts <code>https://…</code> or <code>http://localhost</code> redirect URIs. If the URL above is a plain-<code>http</code> hostname, open Sieve at <code>http://localhost:19816</code> (or set <code>public_base_url</code> in Settings + serve over TLS).</p>
+            <div class="rounded-lg bg-background/40 border border-border-strong p-3 mb-3 space-y-2">
+              <p class="text-xs font-semibold text-foreground">One-time setup: Notion OAuth app</p>
+              <p class="text-xs text-muted-foreground">Create a <strong>public</strong> integration at <a href="https://www.notion.so/my-integrations" target="_blank" rel="noopener" class="text-link hover:text-foreground underline">notion.so/my-integrations</a>, then paste its <strong>Client ID</strong> and <strong>Secret</strong> below.</p>
+              <p class="text-xs text-muted-foreground mb-1">Register this exact <strong>Redirect URI</strong> on the integration (OAuth Domain &amp; URIs):</p>
+              <code class="block text-xs bg-background/60 rounded px-2 py-1 text-foreground break-all select-all">{{$.OAuthCallbackURL}}</code>
+              <p class="text-[11px] text-muted-foreground">Notion only accepts <code>https://…</code> or <code>http://localhost</code> redirect URIs. If the URL above is a plain-<code>http</code> hostname, open Sieve at <code>http://localhost:19816</code> (or set <code>public_base_url</code> in Settings + serve over TLS).</p>
               <form method="POST" action="/connections/notion/oauth/configure" class="space-y-2">
                 <input type="text" name="client_id" required placeholder="Client ID"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
                 <input type="password" name="client_secret" required placeholder="Client Secret" autocomplete="off"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
                 <button type="submit"
-                        class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Save Notion OAuth credentials
                 </button>
               </form>
             </div>
             {{end}}
-            <div class="mt-3 pt-3 border-t border-slate-700">
-              <p class="text-xs font-medium text-slate-400 mb-2">{{if $.NotionOAuthConfigured}}Or paste an integration token{{else}}Paste an integration token{{end}}</p>
+            <div class="mt-3 pt-3 border-t border-border">
+              <p class="text-xs font-medium text-muted-foreground mb-2">{{if $.NotionOAuthConfigured}}Or paste an integration token{{else}}Paste an integration token{{end}}</p>
               <form method="POST" action="/connections/notion/token" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. team-notion"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Team Notion"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Integration Token</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Integration Token</label>
                   <input type="password" name="token" required placeholder="ntn_... or secret_..." autocomplete="off"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <p class="text-xs text-slate-500 mt-1">Sieve calls Notion <code>/v1/users/me</code> before saving. The token is encrypted at rest.</p>
+                         class="input w-full px-3 py-1.5 text-sm">
+                  <p class="text-xs text-muted-foreground mt-1">Sieve calls Notion <code>/v1/users/me</code> before saving. The token is encrypted at rest.</p>
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Connect with token
                 </button>
               </form>
@@ -576,67 +552,67 @@
             {{if $.AsanaOAuthConfigured}}
             <form method="POST" action="/connections/asana/oauth/start" class="space-y-3">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. team-asana"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Team Asana"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Install via OAuth
               </button>
-              <p class="text-xs text-slate-500">You authorize as yourself; Sieve stores the token (and refreshes it automatically).</p>
+              <p class="text-xs text-muted-foreground">You authorize as yourself; Sieve stores the token (and refreshes it automatically).</p>
             </form>
             <div class="mt-2">
               <form method="POST" action="/connections/asana/oauth/clear" class="inline">
-                <button type="submit" class="text-xs text-slate-500 hover:text-slate-300 underline">
+                <button type="submit" class="text-xs text-muted-foreground hover:text-foreground underline">
                   Reset Asana OAuth credentials
                 </button>
               </form>
             </div>
             {{else}}
-            <div class="rounded-lg bg-slate-900/40 border border-indigo-500/30 p-3 mb-3 space-y-2">
-              <p class="text-xs font-semibold text-indigo-300">One-time setup: Asana OAuth app</p>
-              <p class="text-xs text-slate-400">Create an app at <a href="https://app.asana.com/0/my-apps" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 underline">app.asana.com/0/my-apps</a> (→ OAuth), then paste its <strong>Client ID</strong> and <strong>Client Secret</strong> below.</p>
-              <p class="text-xs text-slate-400 mb-1">Register this exact <strong>Redirect URL</strong> on the app:</p>
-              <code class="block text-xs bg-slate-950/60 rounded px-2 py-1 text-indigo-300 break-all select-all">{{$.OAuthCallbackURL}}</code>
+            <div class="rounded-lg bg-background/40 border border-border-strong p-3 mb-3 space-y-2">
+              <p class="text-xs font-semibold text-foreground">One-time setup: Asana OAuth app</p>
+              <p class="text-xs text-muted-foreground">Create an app at <a href="https://app.asana.com/0/my-apps" target="_blank" rel="noopener" class="text-link hover:text-foreground underline">app.asana.com/0/my-apps</a> (→ OAuth), then paste its <strong>Client ID</strong> and <strong>Client Secret</strong> below.</p>
+              <p class="text-xs text-muted-foreground mb-1">Register this exact <strong>Redirect URL</strong> on the app:</p>
+              <code class="block text-xs bg-background/60 rounded px-2 py-1 text-foreground break-all select-all">{{$.OAuthCallbackURL}}</code>
               <form method="POST" action="/connections/asana/oauth/configure" class="space-y-2">
                 <input type="text" name="client_id" required placeholder="Client ID"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
                 <input type="password" name="client_secret" required placeholder="Client Secret" autocomplete="off"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
                 <button type="submit"
-                        class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Save Asana OAuth credentials
                 </button>
               </form>
             </div>
             {{end}}
-            <div class="mt-3 pt-3 border-t border-slate-700">
-              <p class="text-xs font-medium text-slate-400 mb-2">{{if $.AsanaOAuthConfigured}}Or paste a personal access token{{else}}Paste a personal access token{{end}}</p>
+            <div class="mt-3 pt-3 border-t border-border">
+              <p class="text-xs font-medium text-muted-foreground mb-2">{{if $.AsanaOAuthConfigured}}Or paste a personal access token{{else}}Paste a personal access token{{end}}</p>
               <form method="POST" action="/connections/asana/token" class="space-y-3">
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                   <input type="text" name="id" required placeholder="e.g. team-asana"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                   <input type="text" name="display_name" required placeholder="e.g. Team Asana"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                         class="input w-full px-3 py-1.5 text-sm">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Personal Access Token</label>
+                  <label class="block text-xs font-medium text-muted-foreground mb-1">Personal Access Token</label>
                   <input type="password" name="token" required placeholder="1/1234567890:abcdef…" autocomplete="off"
-                         class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                  <p class="text-xs text-slate-500 mt-1">Sieve calls Asana <code>/users/me</code> before saving. The token is encrypted at rest.</p>
+                         class="input w-full px-3 py-1.5 text-sm">
+                  <p class="text-xs text-muted-foreground mt-1">Sieve calls Asana <code>/users/me</code> before saving. The token is encrypted at rest.</p>
                 </div>
                 <button type="submit"
-                        class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                        class="btn btn-primary w-full">
                   Connect with token
                 </button>
               </form>
@@ -645,14 +621,14 @@
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="{{.Type}}">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="e.g. work-gmail"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="e.g. Work Gmail"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               {{/* Connector-declared setup fields (e.g. Linear's api_key),
                    rendered from meta.SetupFields via the shared partial. */}}
@@ -660,26 +636,26 @@
               {{template "connection_edit_field" .}}
               {{end}}
               {{if eq .Type "google"}}
-              <details class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2">
-                <summary class="cursor-pointer text-xs font-medium text-slate-300">Use a specific Google OAuth client for this connection <span class="text-slate-500">(optional)</span></summary>
+              <details class="rounded-lg border border-border bg-background/60 px-3 py-2">
+                <summary class="cursor-pointer text-xs font-medium text-secondary-foreground">Use a specific Google OAuth client for this connection <span class="text-muted-foreground">(optional)</span></summary>
                 <div class="mt-3 space-y-3">
-                  <p class="text-xs text-slate-500">Leave blank to use the server's default client. Set these to connect an account in a <em>different</em> Google Workspace org — paste that org's Internal-app client from its <code>credentials.json</code>. Each connection can use its own org's client, so one Sieve instance serves several workspaces. See <a href="/docs/oauth-pkce#per-connection-google-client" class="text-indigo-400 hover:underline">docs</a>.</p>
+                  <p class="text-xs text-muted-foreground">Leave blank to use the server's default client. Set these to connect an account in a <em>different</em> Google Workspace org — paste that org's Internal-app client from its <code>credentials.json</code>. Each connection can use its own org's client, so one Sieve instance serves several workspaces. See <a href="/docs/oauth-pkce#per-connection-google-client" class="text-link hover:underline">docs</a>.</p>
                   <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">OAuth client_id</label>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">OAuth client_id</label>
                     <input type="text" name="google_client_id" placeholder="…apps.googleusercontent.com"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                           class="input w-full px-3 py-1.5 text-sm">
                   </div>
                   <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">OAuth client_secret</label>
+                    <label class="block text-xs font-medium text-muted-foreground mb-1">OAuth client_secret</label>
                     <input type="password" name="google_client_secret" placeholder="GOCSPX-…"
-                           class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-xs text-slate-500 mt-1">Stored encrypted with the connection; used for token refresh. For a Desktop-app client this secret is non-confidential.</p>
+                           class="input w-full px-3 py-1.5 text-sm">
+                    <p class="text-xs text-muted-foreground mt-1">Stored encrypted with the connection; used for token refresh. For a Desktop-app client this secret is non-confidential.</p>
                   </div>
                 </div>
               </details>
               {{end}}
               <button type="submit"
-                      class="w-full rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect {{.Name}}
               </button>
             </form>
@@ -687,26 +663,28 @@
           </div>
           {{end}}
         </div>
+          </details>
       </div>
       {{end}}
 
       <!-- Hardcoded LLM Provider Cards -->
       {{if or (eq .ConnType "llm") (eq .ConnType "")}}
       <div class="mb-6">
-        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">LLM Providers</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">LLM Providers</h3>
+        <div class="accordion-group">
 
           <!-- Anthropic (Claude) -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-violet-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">Anthropic (Claude)</h4>
-                <p class="text-sm text-slate-400 mt-0.5">Claude API &mdash; chat, embeddings, token counting</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 110 20 10 10 0 010-20z"/><path d="M8 12l3 3 5-5"/></svg>
+          <details id="llm-anthropic" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">Anthropic (Claude)</h4>
+                <p class="accordion-description">Claude API &mdash; chat, embeddings, token counting</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="llm">
@@ -714,201 +692,210 @@
               <input type="hidden" name="auth_header" value="x-api-key">
               <input type="hidden" name="extra_headers" value='{"anthropic-version": "2023-06-01", "content-type": "application/json"}'>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="anthropic"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="Claude"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">API Key</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
                 <input type="password" name="auth_value" required placeholder="sk-ant-api03-..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Get your API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-violet-400 hover:text-violet-300">console.anthropic.com/settings/keys</a></p>
+              <p class="text-xs text-muted-foreground">Get your API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" class="text-link hover:text-foreground">console.anthropic.com/settings/keys</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect Anthropic
               </button>
             </form>
           </div>
+          </details>
 
           <!-- OpenAI -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-emerald-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">OpenAI</h4>
-                <p class="text-sm text-slate-400 mt-0.5">GPT models, DALL-E, Whisper, embeddings</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4m-9-9h4m14 0h4m-3.3-7.7l-2.8 2.8m-9.8 9.8l-2.8 2.8m0-15.4l2.8 2.8m9.8 9.8l2.8 2.8"/></svg>
+          <details id="llm-openai" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">OpenAI</h4>
+                <p class="accordion-description">GPT models, DALL-E, Whisper, embeddings</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="llm">
               <input type="hidden" name="target_url" value="https://api.openai.com">
               <input type="hidden" name="auth_header" value="Authorization">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="openai"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="OpenAI"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">API Key (include "Bearer " prefix)</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">API Key (include "Bearer " prefix)</label>
                 <input type="password" name="auth_value" required placeholder="Bearer sk-proj-..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Get your API key at <a href="https://platform.openai.com/api-keys" target="_blank" class="text-emerald-400 hover:text-emerald-300">platform.openai.com/api-keys</a></p>
+              <p class="text-xs text-muted-foreground">Get your API key at <a href="https://platform.openai.com/api-keys" target="_blank" class="text-success hover:text-success/80">platform.openai.com/api-keys</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect OpenAI
               </button>
             </form>
           </div>
+          </details>
 
           <!-- Gemini (Google) -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-sky-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">Gemini (Google)</h4>
-                <p class="text-sm text-slate-400 mt-0.5">Gemini models, embeddings, grounding</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <details id="llm-gemini" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">Gemini (Google)</h4>
+                <p class="accordion-description">Gemini models, embeddings, grounding</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="llm">
               <input type="hidden" name="target_url" value="https://generativelanguage.googleapis.com">
               <input type="hidden" name="auth_header" value="x-goog-api-key">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="gemini"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="Gemini"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">API Key</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
                 <input type="password" name="auth_value" required placeholder="AIza..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Get your API key at <a href="https://aistudio.google.com/apikey" target="_blank" class="text-sky-400 hover:text-sky-300">aistudio.google.com/apikey</a></p>
+              <p class="text-xs text-muted-foreground">Get your API key at <a href="https://aistudio.google.com/apikey" target="_blank" class="text-link hover:text-foreground">aistudio.google.com/apikey</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect Gemini
               </button>
             </form>
           </div>
+          </details>
 
           <!-- AWS Bedrock -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-orange-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">AWS Bedrock</h4>
-                <p class="text-sm text-slate-400 mt-0.5">Claude, Llama, Mistral, and more via AWS</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15l9 5 9-5"/><path d="M3 9l9 5 9-5"/><path d="M12 2L3 7l9 5 9-5z"/></svg>
+          <details id="llm-bedrock" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">AWS Bedrock</h4>
+                <p class="accordion-description">Claude, Llama, Mistral, and more via AWS</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="llm">
               <input type="hidden" name="auth_header" value="Authorization">
               <input type="hidden" name="extra_headers" value='{"content-type": "application/json"}'>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="bedrock"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="Bedrock"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Bedrock Endpoint URL</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Bedrock Endpoint URL</label>
                 <input type="text" name="target_url" required placeholder="https://bedrock-runtime.us-east-1.amazonaws.com"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">AWS Access Key ID</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">AWS Access Key ID</label>
                 <input type="text" name="aws_access_key" required placeholder="AKIA..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">AWS Secret Access Key</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">AWS Secret Access Key</label>
                 <input type="password" name="auth_value" required placeholder="wJalr..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Region</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Region</label>
                 <input type="text" name="aws_region" value="us-east-1" placeholder="us-east-1"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Requires IAM user/role with <code class="text-orange-400">bedrock:InvokeModel</code> permission. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html" target="_blank" class="text-orange-400 hover:text-orange-300">AWS Bedrock docs</a></p>
+              <p class="text-xs text-muted-foreground">Requires IAM user/role with <code class="text-foreground">bedrock:InvokeModel</code> permission. <a href="https://docs.aws.amazon.com/bedrock/latest/userguide/getting-started.html" target="_blank" class="text-link hover:text-foreground">AWS Bedrock docs</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect Bedrock
               </button>
             </form>
           </div>
+          </details>
 
           <!-- OpenAI-Compatible -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-amber-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">OpenAI-Compatible</h4>
-                <p class="text-sm text-slate-400 mt-0.5">Ollama, Together AI, Groq, or any OpenAI-compatible endpoint</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <details id="llm-openai-compatible" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">OpenAI-Compatible</h4>
+                <p class="accordion-description">Ollama, Together AI, Groq, or any OpenAI-compatible endpoint</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="llm">
               <input type="hidden" name="auth_header" value="Authorization">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="ollama"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="Ollama"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Base URL</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Base URL</label>
                 <input type="text" name="target_url" required placeholder="http://localhost:11434/v1"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">API Key (optional, include "Bearer " prefix)</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">API Key (optional, include "Bearer " prefix)</label>
                 <input type="password" name="auth_value" placeholder="Bearer sk-..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <button type="submit"
-                      class="w-full rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect Endpoint
               </button>
             </form>
           </div>
+          </details>
 
         </div>
       </div>
@@ -917,209 +904,233 @@
       <!-- AWS Connection Cards -->
       {{if or (eq .ConnType "cloud") (eq .ConnType "")}}
       <div class="mb-6">
-        <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Cloud</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h3 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Cloud</h3>
+        <div class="accordion-group">
 
           <!-- AWS Account (general) -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-orange-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">AWS Account</h4>
-                <p class="text-sm text-slate-400 mt-0.5">S3, Lambda, DynamoDB, SES, and more</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 15l9 5 9-5"/><path d="M3 9l9 5 9-5"/><path d="M12 2L3 7l9 5 9-5z"/></svg>
+          <details id="cloud-aws" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">AWS Account</h4>
+                <p class="accordion-description">S3, Lambda, DynamoDB, SES, and more</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="cloud">
               <input type="hidden" name="auth_header" value="X-Sieve-Aws-Auth">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="aws-prod"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="AWS Production"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Default Region</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Default Region</label>
                 <input type="text" name="target_url" required placeholder="us-east-1" value="us-east-1"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">AWS Access Key ID</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">AWS Access Key ID</label>
                 <input type="text" name="aws_access_key" required placeholder="AKIA..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">AWS Secret Access Key</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">AWS Secret Access Key</label>
                 <input type="password" name="auth_value" required placeholder="wJalr..."
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Requires IAM credentials with permissions for the services you want to use. <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html" target="_blank" class="text-orange-400 hover:text-orange-300">AWS IAM docs</a></p>
+              <p class="text-xs text-muted-foreground">Requires IAM credentials with permissions for the services you want to use. <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html" target="_blank" class="text-link hover:text-foreground">AWS IAM docs</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect AWS
               </button>
             </form>
           </div>
+          </details>
 
           <!-- Hyperstack -->
-          <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 hover:border-cyan-500/50 transition-colors group">
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <h4 class="text-white font-medium">Hyperstack</h4>
-                <p class="text-sm text-slate-400 mt-0.5">GPU cloud — NVIDIA H100, A100, L40S</p>
-              </div>
-              <div class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <details id="cloud-hyperstack" class="accordion">
+            <summary class="accordion-trigger">
+            <div class="accordion-head">
+              <div class="min-w-0 flex-1">
+                <h4 class="accordion-title">Hyperstack</h4>
+                <p class="accordion-description">GPU cloud — NVIDIA H100, A100, L40S</p>
               </div>
             </div>
+              <svg class="accordion-chevron" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </summary>
+            <div class="accordion-content">
             <form method="POST" action="/connections/add" class="space-y-3">
               <input type="hidden" name="connector_type" value="http_proxy">
               <input type="hidden" name="category" value="cloud">
               <input type="hidden" name="target_url" value="https://infrahub-api.nexgencloud.com">
               <input type="hidden" name="auth_header" value="api_key">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Connection Alias</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Connection Alias</label>
                 <input type="text" name="id" required placeholder="hyperstack"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Display Name</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">Display Name</label>
                 <input type="text" name="display_name" required placeholder="Hyperstack GPU"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">API Key</label>
+                <label class="block text-xs font-medium text-muted-foreground mb-1">API Key</label>
                 <input type="password" name="auth_value" required placeholder="your-api-key"
-                       class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                       class="input w-full px-3 py-1.5 text-sm">
               </div>
-              <p class="text-xs text-slate-500">Get your API key from the <a href="https://infrahub.nexgencloud.com/" target="_blank" class="text-cyan-400 hover:text-cyan-300">Hyperstack dashboard</a></p>
+              <p class="text-xs text-muted-foreground">Get your API key from the <a href="https://infrahub.nexgencloud.com/" target="_blank" class="text-link hover:text-foreground">Hyperstack dashboard</a></p>
               <button type="submit"
-                      class="w-full rounded-lg bg-cyan-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-cyan-500 transition-colors">
+                      class="btn btn-primary w-full">
                 Connect Hyperstack
               </button>
             </form>
           </div>
+          </details>
 
         </div>
       </div>
       {{end}}
 
       {{if not .Catalog}}
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-8 text-center">
-        <p class="text-slate-400">No connectors registered. Check your Sieve configuration.</p>
+      <div class="card p-8 text-center">
+        <p class="text-muted-foreground">No connectors registered. Check your Sieve configuration.</p>
       </div>
       {{end}}
 
       <!-- Coming Soon -->
       {{if eq .ConnType ""}}
       <div class="mt-8">
-        <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Coming Soon</h2>
+        <h2 class="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Coming Soon</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
           <!-- Development & Project Management -->
           <!-- (GitHub, GitLab, Linear, Notion cards removed — connectors are live, rendered above by .Catalog) -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Jira</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Issues, sprints, boards</p>
+                <h4 class="text-muted-foreground font-medium">Jira</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Issues, sprints, boards</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
           <!-- Communication -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Discord</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Messages, channels, guilds</p>
+                <h4 class="text-muted-foreground font-medium">Discord</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Messages, channels, guilds</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
 
           <!-- Productivity -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Microsoft 365</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Outlook, OneDrive, SharePoint, Teams</p>
+                <h4 class="text-muted-foreground font-medium">Microsoft 365</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Outlook, OneDrive, SharePoint, Teams</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
 
           <!-- Data -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">PostgreSQL</h4>
-                <p class="text-xs text-slate-500 mt-0.5">SQL queries with row-level policies</p>
+                <h4 class="text-muted-foreground font-medium">PostgreSQL</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">SQL queries with row-level policies</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
 
           <!-- Payments & Business -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Stripe</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Payments, customers, subscriptions</p>
+                <h4 class="text-muted-foreground font-medium">Stripe</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Payments, customers, subscriptions</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Twilio</h4>
-                <p class="text-xs text-slate-500 mt-0.5">SMS, voice, WhatsApp</p>
+                <h4 class="text-muted-foreground font-medium">Twilio</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">SMS, voice, WhatsApp</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
 
           <!-- Cloud -->
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">GCP</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Compute, Storage, BigQuery</p>
+                <h4 class="text-muted-foreground font-medium">GCP</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Compute, Storage, BigQuery</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
-          <div class="bg-slate-800/40 rounded-xl border border-dashed border-slate-700 p-5 opacity-50">
+          <div class="bg-card/40 rounded-xl border border-dashed border-border p-5 opacity-50">
             <div class="flex items-start justify-between">
               <div>
-                <h4 class="text-slate-400 font-medium">Vercel</h4>
-                <p class="text-xs text-slate-500 mt-0.5">Deployments, domains, env vars</p>
+                <h4 class="text-muted-foreground font-medium">Vercel</h4>
+                <p class="text-xs text-muted-foreground mt-0.5">Deployments, domains, env vars</p>
               </div>
-              <span class="text-xs text-slate-600 bg-slate-700/50 px-2 py-0.5 rounded">Planned</span>
+              <span class="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">Planned</span>
             </div>
           </div>
 
         </div>
-        <p class="text-xs text-slate-600 mt-3">All planned services can be used today via the generic HTTP Proxy or MCP Proxy connectors.</p>
+        <p class="text-xs text-muted-foreground mt-3">All planned services can be used today via the generic HTTP Proxy or MCP Proxy connectors.</p>
       </div>
       {{end}}
 
       {{if not .Connections}}
-      <div class="mt-8 bg-slate-800/50 rounded-xl border border-dashed border-slate-700 p-8 text-center">
-        <p class="text-slate-500">No active connections. Pick a service above to get started.</p>
+      <div class="mt-8 bg-card/50 rounded-xl border border-dashed border-border p-8 text-center">
+        <p class="text-muted-foreground">No active connections. Pick a service above to get started.</p>
       </div>
       {{end}}
     </div>
   </main>
 
+  <script>
+    // Connector accordions: open the row the URL points at, so a
+    // deep link (#slack, or the sidebar's ?type=slack filter) never
+    // lands on a collapsed row. Rows are native <details>; nothing
+    // else on the page depends on them being open.
+    (function () {
+      function openRow(id) {
+        var el = id && document.getElementById(id);
+        if (el && el.tagName === "DETAILS") { el.open = true; return el; }
+        return null;
+      }
+      openRow(new URLSearchParams(window.location.search).get("type"));
+      function fromHash(scroll) {
+        var el = openRow(decodeURIComponent(window.location.hash.slice(1)));
+        if (el && scroll) el.scrollIntoView({ block: "start" });
+      }
+      fromHash(true);
+      window.addEventListener("hashchange", function () { fromHash(true); });
+    })();
+  </script>
   {{/*
     Single delegated submit handler for forms that carry data-confirm.
     Replaces the previous hx-post + hx-confirm on the Disable / Delete

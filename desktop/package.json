@@ -1,0 +1,26 @@
+{
+  "name": "sieve-desktop",
+  "productName": "Sieve",
+  "version": "0.1.0",
+  "description": "Desktop shell for Sieve: runs the Sieve server in the background and puts the admin UI and approvals one click away.",
+  "license": "MIT",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build:sidecar": "node scripts/build-sidecar.mjs",
+    "build": "tsc -p tsconfig.json",
+    "start": "npm run build && electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && playwright test",
+    "dist": "npm run build && npm run build:sidecar && electron-builder --mac --arm64",
+    "pack": "npm run build && electron-builder --mac --arm64 --dir",
+    "icons": "node scripts/render-icons.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^24.19.2",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "typescript": "^7.0.2"
+  }
+}

@@ -60,6 +60,7 @@ import (
 	"github.com/trilitech/Sieve/internal/connections"
 	"github.com/trilitech/Sieve/internal/connector"
 	"github.com/trilitech/Sieve/internal/database"
+	"github.com/trilitech/Sieve/internal/events"
 	"github.com/trilitech/Sieve/internal/iampolicies"
 	"github.com/trilitech/Sieve/internal/mcp"
 	"github.com/trilitech/Sieve/internal/operator"
@@ -106,10 +107,15 @@ func main() {
 	}
 
 	var (
-		dbPath           = flag.String("db", defaultDBPath, "path to the persistent sieve database file")
-		webAddr          = flag.String("web", defaultWebAddr, "host:port for the admin web UI")
-		apiAddr          = flag.String("api", defaultAPIAddr, "host:port for the agent API+MCP")
-		setup            = flag.Bool("setup", false, "first-run mode: initialize the keyring (prompts for passphrase twice)")
+		dbPath       = flag.String("db", defaultDBPath, "path to the persistent sieve database file")
+		webAddr      = flag.String("web", defaultWebAddr, "host:port for the admin web UI")
+		apiAddr      = flag.String("api", defaultAPIAddr, "host:port for the agent API+MCP")
+		setup        = flag.Bool("setup", false, "first-run mode: initialize the keyring (prompts for passphrase twice)")
+		initIfNeeded = flag.Bool("init-if-needed", false,
+			"supervised mode for the desktop app and other process managers: read the "+
+				"passphrase from "+secrets.PassphraseFDEnv+" or "+secrets.PassphraseFileEnv+
+				" (required; never a TTY), initialize the keyring if the database has none, "+
+				"otherwise load it. A wrong passphrase on an existing database still fails.")
 		rotatePassphrase = flag.Bool("rotate-passphrase", false,
 			"offline rotation mode: prompt for current and new passphrases, "+
 				"re-wrap every credential record under the new key, and exit. "+
@@ -165,9 +171,16 @@ func main() {
 	}
 	flag.Parse()
 
-	if exclusiveCount(*setup, *rotatePassphrase, *resetKeyring) > 1 {
+	if exclusiveCount(*setup, *rotatePassphrase, *resetKeyring, *initIfNeeded) > 1 {
 		log.SetFlags(0)
-		log.Fatalf("sieve: --setup, --rotate-passphrase, and --reset-keyring are mutually exclusive")
+		log.Fatalf("sieve: --setup, --rotate-passphrase, --reset-keyring, and --init-if-needed are mutually exclusive")
+	}
+	if *initIfNeeded && os.Getenv(secrets.PassphraseFDEnv) == "" && os.Getenv(secrets.PassphraseFileEnv) == "" {
+		// The point of this mode is a machine-held passphrase handed over by a
+		// supervisor. Refusing the TTY keeps a typo'd interactive passphrase
+		// from silently becoming the key of a brand-new keyring.
+		log.SetFlags(0)
+		log.Fatalf("sieve: --init-if-needed requires %s or %s", secrets.PassphraseFDEnv, secrets.PassphraseFileEnv)
 	}
 
 	if *rotatePassphrase {
@@ -187,7 +200,14 @@ func main() {
 		AsanaClientID:      *asanaClientID,
 		AsanaClientSecret:  *asanaClientSecret,
 	}
-	if err := run(*dbPath, *webAddr, *apiAddr, *setup, *googleCredsPath, oauthClients); err != nil {
+	mode := keyringLoad
+	switch {
+	case *setup:
+		mode = keyringSetup
+	case *initIfNeeded:
+		mode = keyringInitIfNeeded
+	}
+	if err := run(*dbPath, *webAddr, *apiAddr, mode, *googleCredsPath, oauthClients); err != nil {
 		log.SetFlags(0)
 		log.Fatalf("sieve: %v", err)
 	}
@@ -475,7 +495,17 @@ func operatorPrefersPlaintextAdmin(s *settings.Service) bool {
 	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(raw)), "http://")
 }
 
-func run(dbPath, webAddr, apiAddr string, setup bool, googleCredsPath string, oauthClients web.OAuthClientConfig) error {
+// keyringMode selects how run() obtains the keyring.
+type keyringMode int
+
+const (
+	keyringLoad         keyringMode = iota // normal start: Load, fail if never set up
+	keyringSetup                           // --setup: TTY-confirmed Setup
+	keyringInitIfNeeded                    // --init-if-needed: Setup if absent, else Load
+)
+
+func run(dbPath, webAddr, apiAddr string, mode keyringMode, googleCredsPath string, oauthClients web.OAuthClientConfig) error {
+	setup := mode == keyringSetup
 	// --- Keyring passphrase (BEFORE opening the DB) ---
 	// Acquire the passphrase first. When an operator opts into the fd source
 	// (SIEVE_PASSPHRASE_FD=3), opening the DB first would let SQLite grab fd 3
@@ -502,6 +532,13 @@ func run(dbPath, webAddr, apiAddr string, setup bool, googleCredsPath string, oa
 	defer db.Close()
 
 	keyring := &secrets.Keyring{}
+	if mode == keyringInitIfNeeded {
+		initialized, err := secrets.IsInitialized(db.DB)
+		if err != nil {
+			return fmt.Errorf("check keyring: %w", err)
+		}
+		setup = !initialized
+	}
 	if setup {
 		if err := keyring.Setup(db.DB, pp); err != nil {
 			return fmt.Errorf("keyring setup: %w", err)
@@ -527,6 +564,15 @@ func run(dbPath, webAddr, apiAddr string, setup bool, googleCredsPath string, oa
 
 	scriptgenSvc := scriptgen.NewService(connSvc, settingsSvc)
 
+	// Notification hub: approvals, re-auth transitions, and agent denies are
+	// published here and streamed to the desktop shell at GET /events on the
+	// admin listener. Closed on shutdown (RegisterOnShutdown below) so open
+	// streams don't hold up graceful shutdown.
+	eventHub := events.NewHub()
+	approvalQ.SetEvents(eventHub)
+	auditLog.SetEvents(eventHub)
+	connSvc.SetEvents(eventHub)
+
 	// Resolve Google OAuth credentials path (optional).
 	if googleCredsPath == "" {
 		matches, _ := filepath.Glob("*client_secret*.json")
@@ -546,6 +592,7 @@ func run(dbPath, webAddr, apiAddr string, setup bool, googleCredsPath string, oa
 	)
 	webSrv.SetIAM(iamSvc, registry, settingsSvc)
 	webSrv.SetOAuthClients(oauthClients)
+	webSrv.SetEvents(eventHub)
 	defer webSrv.Close()
 
 	// Operator + session services drive the admin-authentication path.
@@ -618,6 +665,7 @@ func run(dbPath, webAddr, apiAddr string, setup bool, googleCredsPath string, oa
 	agentMux.Handle("/", apiRouter.Handler())
 
 	webHTTP := &http.Server{Addr: webAddr, Handler: webSrv.Handler(), ReadHeaderTimeout: 10 * time.Second}
+	webHTTP.RegisterOnShutdown(eventHub.Close)
 	apiHTTP := &http.Server{Addr: apiAddr, Handler: agentMux, ReadHeaderTimeout: 10 * time.Second}
 
 	// Silence the benign per-connection "TLS handshake error" noise. With the

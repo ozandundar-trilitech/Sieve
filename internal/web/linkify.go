@@ -50,7 +50,7 @@ func linkifyText(s string) template.HTML {
 		}
 		b.WriteString(`<a href="`)
 		b.WriteString(template.HTMLEscapeString(href))
-		b.WriteString(`" target="_blank" rel="noopener noreferrer" class="text-indigo-400 hover:text-indigo-300 underline">`)
+		b.WriteString(`" target="_blank" rel="noopener noreferrer" class="link underline">`)
 		b.WriteString(template.HTMLEscapeString(match))
 		b.WriteString(`</a>`)
 		b.WriteString(template.HTMLEscapeString(trailing))

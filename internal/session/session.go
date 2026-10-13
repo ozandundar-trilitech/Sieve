@@ -221,6 +221,34 @@ func (m *Manager) Lookup(cookieValue string) (*Session, error) {
 	return &s, nil
 }
 
+// Valid reports whether cookieValue names a live session WITHOUT bumping its
+// sliding expiry. Long-lived streams (GET /events) poll this so they end when
+// the session does — logout, credential rotation, idle or absolute expiry —
+// without a held-open connection silently keeping the session alive forever.
+func (m *Manager) Valid(cookieValue string) bool {
+	if cookieValue == "" {
+		return false
+	}
+	var createdAt, expires string
+	err := m.db.QueryRow(`SELECT created_at, expires_at FROM operator_session WHERE id = ?`,
+		sha256Hex(cookieValue)).Scan(&createdAt, &expires)
+	if err != nil {
+		return false
+	}
+	now := m.now().UTC()
+	exp, err := time.Parse(time.RFC3339Nano, expires)
+	if err != nil || !now.Before(exp) {
+		return false
+	}
+	if m.absoluteTimeout > 0 {
+		created, err := time.Parse(time.RFC3339Nano, createdAt)
+		if err != nil || !now.Before(created.Add(m.absoluteTimeout)) {
+			return false
+		}
+	}
+	return true
+}
+
 // Logout deletes a session by its plaintext cookie value. No-op when
 // the row is already gone — operator clicking logout twice is fine.
 func (m *Manager) Logout(cookieValue string) error {

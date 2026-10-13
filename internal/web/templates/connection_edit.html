@@ -5,68 +5,65 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit connection: {{.DisplayName}} - Sieve</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  {{template "head" .}}
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-background text-foreground min-h-screen">
   {{template "nav" .}}
 
-  <main class="ml-64 p-8">
+  <main class="app-main">
     <div class="max-w-2xl">
       <div class="mb-6">
-        <a href="/connections" class="text-sm text-slate-400 hover:text-slate-200">← Back to connections</a>
-        <h1 class="text-2xl font-bold text-white mt-2">
+        <a href="/connections" class="text-sm text-muted-foreground hover:text-foreground">← Back to connections</a>
+        <h1 class="page-title mt-2">
           Edit connection: {{.DisplayName}}
         </h1>
-        <p class="text-sm text-slate-400 mt-1">
-          Connector type: <code class="text-slate-300">{{.ConnectorType}}</code> · ID: <code class="text-slate-300">{{.ID}}</code>
+        <p class="text-sm text-muted-foreground mt-1">
+          Connector type: <code class="text-secondary-foreground">{{.ConnectorType}}</code> · ID: <code class="text-secondary-foreground">{{.ID}}</code>
         </p>
       </div>
 
       {{if .Success}}
-      <div class="mb-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-4 py-3">
-        <p class="text-sm text-emerald-400">Connection updated.</p>
+      <div class="mb-6 rounded-lg bg-success/10 border border-success/20 px-4 py-3">
+        <p class="text-sm text-success">Connection updated.</p>
       </div>
       {{end}}
 
       {{if .Error}}
-      <div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 px-4 py-3">
-        <p class="text-sm text-red-400">{{.Error}}</p>
+      <div class="mb-6 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3">
+        <p class="text-sm text-destructive">{{.Error}}</p>
       </div>
       {{end}}
 
       <form method="POST" action="/connections/{{.ID}}/edit" class="space-y-6">
 
         {{if .Fields}}
-        <section class="rounded-lg bg-slate-800 border border-slate-700 p-6 space-y-5">
+        <section class="card p-6 space-y-5">
           {{range .Fields}}
             {{template "connection_edit_field" .}}
           {{end}}
         </section>
         {{else}}
-        <section class="rounded-lg bg-slate-800 border border-slate-700 p-6">
-          <p class="text-sm text-slate-400">
+        <section class="card p-6">
+          <p class="text-sm text-muted-foreground">
             No editable settings for the <code>{{.ConnectorType}}</code> connector type.
           </p>
         </section>
         {{end}}
 
         {{if .HTTPProxyBaseline}}
-        <section class="rounded-lg bg-slate-800 border border-slate-700 p-6">
-          <h2 class="text-lg font-semibold text-white mb-2">Header deny-list (read-only baseline)</h2>
-          <p class="text-sm text-slate-400 mb-4">
+        <section class="card p-6">
+          <h2 class="text-lg font-semibold text-foreground mb-2">Header deny-list (read-only baseline)</h2>
+          <p class="text-sm text-muted-foreground mb-4">
             Sieve always rejects agent-supplied request headers whose key matches any entry below
             (case-insensitive; entries ending with <code>*</code> are prefix matches). The baseline
             cannot be reduced; add extras via the "Additional denied headers" field above.
           </p>
-          <ul class="text-sm text-slate-300 space-y-1">
+          <ul class="text-sm text-secondary-foreground space-y-1">
             {{range .HTTPProxyBaseline.BaselineDenyKeys}}
             <li class="font-mono"><code>{{.}}</code></li>
             {{end}}
             {{if .HTTPProxyBaseline.AuthHeaderConfigured}}
-            <li class="font-mono"><code>{{.HTTPProxyBaseline.AuthHeaderConfigured}}</code> <span class="text-slate-500">(this connection's configured auth_header)</span></li>
+            <li class="font-mono"><code>{{.HTTPProxyBaseline.AuthHeaderConfigured}}</code> <span class="text-muted-foreground">(this connection's configured auth_header)</span></li>
             {{end}}
           </ul>
         </section>
@@ -74,9 +71,9 @@
 
         {{if .Fields}}
         <div class="flex justify-end gap-3 pt-2">
-          <a href="/connections" class="px-4 py-2 text-sm text-slate-300 hover:text-white">Cancel</a>
+          <a href="/connections" class="px-4 py-2 text-sm text-secondary-foreground hover:text-foreground">Cancel</a>
           <button type="submit"
-            class="px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            class="btn btn-primary">
             Save changes
           </button>
         </div>
@@ -84,44 +81,44 @@
       </form>
 
       {{if eq .ConnectorType "github"}}
-      <section class="mt-6 rounded-lg bg-slate-800 border border-slate-700 p-6 space-y-5">
+      <section class="card mt-6 p-6 space-y-5">
         <div>
-          <h2 class="text-lg font-semibold text-white">Credentials</h2>
-          <p class="text-sm text-slate-400 mt-1">
+          <h2 class="text-lg font-semibold text-foreground">Credentials</h2>
+          <p class="text-sm text-muted-foreground mt-1">
             A GitHub connection holds one or more credentials, each scoped to a user or org.
             Rotate a fine-grained PAT below — the new token is validated against the same scope,
-            then stored encrypted <span class="text-slate-300">in place</span>, so this connection keeps
+            then stored encrypted <span class="text-secondary-foreground">in place</span>, so this connection keeps
             its ID and every IAM grant. A GitHub&nbsp;App installation is rotated by reinstalling the App.
           </p>
         </div>
         {{range .GitHubCredentials}}
-        <div class="rounded-lg border border-slate-700 bg-slate-900/60 p-4">
-          <p class="text-sm text-slate-300">
+        <div class="rounded-lg border border-border bg-background/60 p-4">
+          <p class="text-sm text-secondary-foreground">
             <span class="font-medium">{{if .IsPAT}}Fine-grained PAT{{else}}GitHub App installation{{end}}</span>
-            · scope <code class="text-slate-400">{{.ScopeType}}:{{.ScopeName}}</code>
+            · scope <code class="text-muted-foreground">{{.ScopeType}}:{{.ScopeName}}</code>
           </p>
           {{if .IsPAT}}
           <form method="POST" action="/connections/{{$.ID}}/github/pat" class="mt-3 flex gap-2 items-end">
             <input type="hidden" name="cred_index" value="{{.Index}}">
             <div class="flex-1">
-              <label class="block text-xs font-medium text-slate-400 mb-1">New fine-grained token for <code>{{.ScopeType}}:{{.ScopeName}}</code></label>
+              <label class="block text-xs font-medium text-muted-foreground mb-1">New fine-grained token for <code>{{.ScopeType}}:{{.ScopeName}}</code></label>
               <input type="password" name="token" required autocomplete="off" placeholder="github_pat_…"
-                class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                class="input w-full px-3 py-1.5 text-sm">
             </div>
             <button type="submit"
-              class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500 transition-colors whitespace-nowrap">
+              class="btn btn-primary whitespace-nowrap">
               Rotate token
             </button>
           </form>
-          <p class="text-xs text-slate-500 mt-2">
+          <p class="text-xs text-muted-foreground mt-2">
             Validated against <code>{{if eq .ScopeType "org"}}/orgs/{{.ScopeName}}{{else}}/user{{end}}</code> before saving. Never shown back.
           </p>
           {{else}}
-          <p class="text-xs text-slate-500 mt-2">Managed via the GitHub App install flow. To rotate, reinstall the App on this account.</p>
+          <p class="text-xs text-muted-foreground mt-2">Managed via the GitHub App install flow. To rotate, reinstall the App on this account.</p>
           {{end}}
         </div>
         {{else}}
-        <p class="text-sm text-slate-400">No credentials found on this connection.</p>
+        <p class="text-sm text-muted-foreground">No credentials found on this connection.</p>
         {{end}}
       </section>
       {{end}}

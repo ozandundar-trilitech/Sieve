@@ -5,39 +5,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit filter - Sieve</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
+  {{template "head" .}}
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen">
+<body class="bg-background text-foreground min-h-screen">
   {{template "nav" .}}
 
-  <main class="ml-64 p-8">
+  <main class="app-main">
     <div class="max-w-3xl">
       <div class="mb-6">
-        <a href="/iam?section=filters" class="text-sm text-slate-400 hover:text-slate-200">&larr; Back to Filters</a>
-        <h1 class="text-2xl font-bold text-white mt-2">Edit filter — {{.Name}}</h1>
+        <a href="/iam?section=filters" class="text-sm text-muted-foreground hover:text-foreground">&larr; Back to Filters</a>
+        <h1 class="page-title mt-2">Edit filter — {{.Name}}</h1>
       </div>
 
       {{if .Error}}
-      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6">
-        <p class="text-sm text-red-300">{{.Error}}</p>
+      <div class="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-6">
+        <p class="text-sm text-destructive">{{.Error}}</p>
       </div>
       {{end}}
 
-      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
-        <p class="text-xs text-slate-500 mb-5">Edit this filter in place. The <strong>name</strong> is fixed — rules and guardrails reference it by name, so renaming would silently detach them.</p>
+      <div class="card p-6">
+        <p class="text-xs text-muted-foreground mb-5">Edit this filter in place. The <strong>name</strong> is fixed — rules and guardrails reference it by name, so renaming would silently detach them.</p>
         <form method="POST" action="/iam/filters/{{.Name}}/update" id="filter-form">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label class="block text-sm font-medium text-slate-400 mb-1.5">Name</label>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Name</label>
               <input type="text" value="{{.Name}}" disabled
-                     class="w-full rounded-lg bg-slate-900/60 border border-slate-700 px-3 py-2 text-sm text-slate-400 cursor-not-allowed">
+                     class="input w-full px-3 py-2 text-sm text-muted-foreground cursor-not-allowed">
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-400 mb-1.5">Kind</label>
+              <label class="block text-sm font-medium text-muted-foreground mb-1.5">Kind</label>
               <select name="kind" id="filter-kind"
-                      class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                      class="select w-full px-3 py-2 text-sm">
                 <option value="redact" {{if eq .Kind "redact"}}selected{{end}}>Redact (mask matching text in the response)</option>
                 <option value="exclude_items" {{if eq .Kind "exclude_items"}}selected{{end}}>Exclude items (drop list items containing text)</option>
                 <option value="script_filter" {{if eq .Kind "script_filter"}}selected{{end}}>Script filter (transforms the response after it runs)</option>
@@ -47,56 +45,56 @@
           </div>
 
           <div class="mt-5">
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">Description <span class="text-slate-600">(optional)</span></label>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Description <span class="text-muted-foreground">(optional)</span></label>
             <input type="text" name="description" value="{{.Description}}" placeholder="what this filter does"
-                   class="w-full md:w-1/2 rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                   class="input w-full md:w-1/2 px-3 py-2 text-sm">
           </div>
 
           <div class="mt-5">
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">Order / rank</label>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Order / rank</label>
             <input type="number" name="order" value="{{.Order}}" placeholder="e.g. 20"
-                   class="w-full md:w-1/2 rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <p class="text-xs text-slate-500 mt-1">When several transforms apply to one response they run in ascending order — <strong>lower runs first</strong> (e.g. excludes 10, redactions 20, scripts 30).</p>
+                   class="input w-full md:w-1/2 px-3 py-2 text-sm">
+            <p class="text-xs text-muted-foreground mt-1">When several transforms apply to one response they run in ascending order — <strong>lower runs first</strong> (e.g. excludes 10, redactions 20, scripts 30).</p>
           </div>
 
           <!-- redact / exclude_items config -->
           <div id="filter-cfg-patterns" class="mt-5">
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">Patterns</label>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Patterns</label>
             <textarea name="patterns" id="filter-patterns" rows="4" placeholder="One per line, e.g.&#10;confidential&#10;\b\d{16}\b"
-                      class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">{{.Patterns}}</textarea>
+                      class="textarea w-full px-3 py-2 text-sm font-mono">{{.Patterns}}</textarea>
             <div class="mt-2 flex items-center gap-3">
-              <label class="text-sm text-slate-400">Match</label>
-              <select name="match" id="filter-match" class="rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <label class="text-sm text-muted-foreground">Match</label>
+              <select name="match" id="filter-match" class="select px-3 py-1.5 text-sm">
                 <option value="contains" {{if eq .Match "contains"}}selected{{end}}>Contains — literal text, case-insensitive</option>
                 <option value="regex" {{if eq .Match "regex"}}selected{{end}}>Regex — RE2 pattern</option>
               </select>
             </div>
-            <p class="text-xs text-slate-500 mt-2">Runs <strong>after</strong> the operation, only within the <strong>content fields</strong> of whichever connector you attach it to — never ids, metadata, or base64 attachments. One pattern per line; a field matches if it matches <strong>any</strong> line.</p>
-            <div class="mt-3 rounded-lg bg-slate-900/60 border border-slate-700 p-3">
-              <label class="block text-xs font-medium text-slate-400 mb-1">Test against sample text <span class="text-slate-600">(optional — not saved)</span></label>
+            <p class="text-xs text-muted-foreground mt-2">Runs <strong>after</strong> the operation, only within the <strong>content fields</strong> of whichever connector you attach it to — never ids, metadata, or base64 attachments. One pattern per line; a field matches if it matches <strong>any</strong> line.</p>
+            <div class="mt-3 rounded-lg bg-background/60 border border-border p-3">
+              <label class="block text-xs font-medium text-muted-foreground mb-1">Test against sample text <span class="text-muted-foreground">(optional — not saved)</span></label>
               <textarea id="filter-sample" rows="2" placeholder="Paste a sample value to see what your patterns match…"
-                        class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        class="textarea w-full px-3 py-2 text-sm"></textarea>
               <div id="filter-preview" class="mt-2 text-xs space-y-1"></div>
             </div>
           </div>
 
           <!-- script_guard / script_filter config — shared inputs; help differs by kind. -->
           <div id="filter-cfg-script" class="mt-5 hidden">
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">Language</label>
-            <select name="language" class="mb-3 rounded-lg bg-slate-900 border border-slate-600 px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Language</label>
+            <select name="language" class="select mb-3 px-3 py-1.5 text-sm">
               <option value="python" {{if eq .Language "python"}}selected{{end}}>Python</option>
               <option value="javascript" {{if eq .Language "javascript"}}selected{{end}}>JavaScript (Node)</option>
             </select>
-            <label class="block text-sm font-medium text-slate-400 mb-1.5">Script path</label>
+            <label class="block text-sm font-medium text-muted-foreground mb-1.5">Script path</label>
             <input type="text" name="script_path" value="{{.ScriptPath}}" placeholder="/opt/sieve-py/guards/biz_hours.py"
-                   class="w-full rounded-lg bg-slate-900 border border-slate-600 px-3 py-2 text-sm text-white font-mono placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <p id="filter-help-guard" class="text-xs text-slate-500 mt-2">Runs <strong>before</strong> the operation under the allowed scripts directory (<code>/opt/sieve-py</code>; no <code>..</code>). Reads a JSON request on stdin, writes a JSON decision (<code>allow</code>/<code>deny</code>/<code>approval_required</code>) on stdout; anything else is treated as deny.</p>
-            <p id="filter-help-filter" class="hidden text-xs text-slate-500 mt-2">Runs <strong>after</strong> the operation under the allowed scripts directory (<code>/opt/sieve-py</code>; no <code>..</code>) and <strong>rewrites the response</strong>. Reads the response on stdin as <code>metadata.response</code>; writes <code>{"rewrite": "&lt;new response&gt;"}</code> on stdout. Stacks with other transforms in rank order.</p>
+                   class="input w-full px-3 py-2 text-sm font-mono">
+            <p id="filter-help-guard" class="text-xs text-muted-foreground mt-2">Runs <strong>before</strong> the operation under the allowed scripts directory (<code>/opt/sieve-py</code>; no <code>..</code>). Reads a JSON request on stdin, writes a JSON decision (<code>allow</code>/<code>deny</code>/<code>approval_required</code>) on stdout; anything else is treated as deny.</p>
+            <p id="filter-help-filter" class="hidden text-xs text-muted-foreground mt-2">Runs <strong>after</strong> the operation under the allowed scripts directory (<code>/opt/sieve-py</code>; no <code>..</code>) and <strong>rewrites the response</strong>. Reads the response on stdin as <code>metadata.response</code>; writes <code>{"rewrite": "&lt;new response&gt;"}</code> on stdout. Stacks with other transforms in rank order.</p>
           </div>
 
           <div class="mt-6 flex items-center gap-3">
-            <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors">Save changes</button>
-            <a href="/iam?section=filters" class="text-sm text-slate-400 hover:text-slate-200">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save changes</button>
+            <a href="/iam?section=filters" class="text-sm text-muted-foreground hover:text-foreground">Cancel</a>
           </div>
         </form>
       </div>
@@ -149,7 +147,7 @@
               try { regexes.push(compile(line, mode)); }
               catch (e) {
                 const p = document.createElement('p');
-                p.className = 'text-red-400';
+                p.className = 'text-destructive';
                 p.textContent = '✗ invalid pattern: ' + line + ' — ' + e.message;
                 out.appendChild(p);
               }
@@ -166,10 +164,10 @@
               }
             }
             const box = document.createElement('div');
-            box.className = 'bg-slate-900 border border-slate-700 rounded-lg p-2 whitespace-pre-wrap break-words text-slate-300';
+            box.className = 'bg-background border border-border rounded-lg p-2 whitespace-pre-wrap break-words text-secondary-foreground';
             if (!ranges.length) {
               const s = document.createElement('span');
-              s.className = 'text-slate-500'; s.textContent = 'No matches in the sample.';
+              s.className = 'text-muted-foreground'; s.textContent = 'No matches in the sample.';
               box.appendChild(s); out.appendChild(box); return;
             }
             ranges.sort((a, b) => a[0] - b[0]);
@@ -183,7 +181,7 @@
             for (const pair of merged) {
               if (pair[0] > pos) box.appendChild(document.createTextNode(sample.slice(pos, pair[0])));
               const mark = document.createElement('mark');
-              mark.className = 'bg-amber-400/40 text-amber-100 rounded px-0.5';
+              mark.className = 'bg-warning/40 text-warning rounded px-0.5';
               mark.textContent = sample.slice(pair[0], pair[1]);
               box.appendChild(mark);
               pos = pair[1];
