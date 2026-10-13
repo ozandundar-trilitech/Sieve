@@ -56,12 +56,14 @@ if [ -n "$REPO" ]; then
   SRC="$(ls "$TMP"/Sieve-*-arm64.dmg | head -1)"
 else
   if [ -z "$URL" ]; then
-    # Newest release whose tag starts with desktop-v (pre-releases included),
-    # via the public GitHub API: no login needed.
+    # Highest-versioned release whose tag starts with desktop-v (pre-releases
+    # included), via the public GitHub API: no login needed. Sorted by the
+    # version in the tag (field 8 of .../releases/download/desktop-vX.Y.Z/…),
+    # not by list order, so publishing order and API caching don't matter.
     echo "Finding the latest Sieve Desktop release…"
-    URL="$(curl -fsSL "https://api.github.com/repos/${PUBLIC_REPO}/releases?per_page=30" \
+    URL="$(curl -fsSL "https://api.github.com/repos/${PUBLIC_REPO}/releases?per_page=100" \
       | grep -o '"browser_download_url": *"[^"]*/download/desktop-v[^"]*/Sieve-[^"]*-arm64\.dmg"' \
-      | head -1 | sed 's/.*"\(https[^"]*\)"$/\1/')" || true
+      | sed 's/.*"\(https[^"]*\)"$/\1/' | sort -t/ -k8,8V | tail -1)" || true
     [ -n "$URL" ] || die "no desktop release found in ${PUBLIC_REPO}"
   fi
   echo "Downloading Sieve…"
