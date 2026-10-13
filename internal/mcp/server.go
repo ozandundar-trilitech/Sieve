@@ -571,7 +571,9 @@ func (s *Server) handleToolsCall(ctx context.Context, id any, tok *tokens.Token,
 
 // handleListConnections returns the token's available connections.
 func (s *Server) handleListConnections(id any, tok *tokens.Token, start time.Time) *JSONRPCResponse {
-	var conns []map[string]string
+	// Non-nil so "no connections" marshals as [] rather than null: an agent
+	// reads null as a broken server, [] as "nothing granted yet".
+	conns := []map[string]string{}
 	for _, connID := range s.tokenConnectionIDs(tok) {
 		conn, err := s.connections.Get(connID)
 		if err != nil {

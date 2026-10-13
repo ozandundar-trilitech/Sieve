@@ -28,10 +28,12 @@ test.describe.serial('connect to Claude Desktop (Phase 3)', () => {
     searchList = sec('list-keychains', '-d', 'user');
     sec('create-keychain', '-p', 'e2e', keychain);
     sec('unlock-keychain', '-p', 'e2e', keychain);
-    // Make the throwaway keychain searchable so `mcp-launch` (which searches
-    // the default list) can read the token, exactly as with the login one.
+    // Put the throwaway keychain FIRST in the search list so `mcp-launch`
+    // (which searches the default list, as in real use) finds the test token
+    // even when the login keychain already holds a real sieve-claude-desktop
+    // item from using the app.
     const current = searchList.split('\n').map((l) => l.trim().replace(/^"|"$/g, '')).filter(Boolean);
-    sec('list-keychains', '-d', 'user', '-s', ...current.filter((k) => k !== keychain), keychain);
+    sec('list-keychains', '-d', 'user', '-s', keychain, ...current.filter((k) => k !== keychain));
 
     mkdirSync(claudeDir, { recursive: true });
     writeFileSync(claudeConfig, JSON.stringify(ORIGINAL, null, 2));

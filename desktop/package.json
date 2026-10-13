@@ -1,7 +1,7 @@
 {
   "name": "sieve-desktop",
   "productName": "Sieve",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Desktop shell for Sieve: runs the Sieve server in the background and puts the admin UI and approvals one click away.",
   "license": "MIT",
   "private": true,

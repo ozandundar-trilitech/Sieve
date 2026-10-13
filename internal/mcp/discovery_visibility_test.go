@@ -3,6 +3,8 @@ package mcp_test
 import (
 	"strings"
 	"testing"
+
+	"github.com/trilitech/Sieve/internal/tokens"
 )
 
 // A token granted only on one connection must not discover tools (or the
@@ -65,4 +67,28 @@ func resultText(result map[string]any) string {
 		}
 	}
 	return b.String()
+}
+
+// A token whose roles grant no connection gets an empty JSON list from
+// list_connections, not null: agents read null as a broken server.
+func TestListConnections_EmptyIsEmptyList(t *testing.T) {
+	ts, _, env := setup(t)
+	role, err := env.Roles.Create("no-grants", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := env.Tokens.Create(&tokens.CreateRequest{Name: "no-grants-token", RoleIDs: []string{role.ID}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	lc := doRPC(t, ts, res.PlaintextToken, jsonRPCRequest{
+		JSONRPC: "2.0", ID: 1, Method: "tools/call",
+		Params: map[string]any{"name": "list_connections", "arguments": map[string]any{}},
+	})
+	if lc.Error != nil {
+		t.Fatalf("list_connections error: %v", lc.Error)
+	}
+	if got := resultText(lc.Result); got != "[]" {
+		t.Fatalf("list_connections with no grants = %q, want []", got)
+	}
 }
